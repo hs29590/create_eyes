@@ -10,43 +10,17 @@ GPIO.setmode(GPIO.BCM)                     #Set GPIO pin numbering
 
 TRIG = 20 #Associate pin 23 to TRIG
 
-ECHO = 21                                  #Associate pin 24 to ECHO
-
-LED= 26                                    #pin 37 as led
-
-BUTTON= 19    #pin 35 as button 
-
+ECHO = 26                              #Associate pin 24 to ECHO
 
 
 def setup():
-    global Ultrasoundswitch
-    Ultrasoundswitch = 0;
     GPIO.setup(TRIG,GPIO.OUT)                  #Set pin as GPIO out
 
     GPIO.setup(ECHO,GPIO.IN)                   #Set pin as GPIO in
 
-    GPIO.setup(LED,GPIO.OUT)                     #Set pin as GPIO out
-
-    GPIO.setup(BUTTON,GPIO.IN,pull_up_down=GPIO.PUD_UP)                     #Set pin as GPIO in and pull up
-
 
 
 def loop():
-    global Ultrasoundswitch
-    BUTTON_State=GPIO.input(BUTTON)
-
-    if BUTTON_State==False: #when button pressed then 
-
-       Ultrasoundswitch+=1 #this code is used for
-#       print("Button state is turned to false");
-
-       Ultrasoundswitch%=2 #toggling flag(ultrasoundswitch between 0 and 1		    
-
-
-    if Ultrasoundswitch==1:   #execcute only if button is pressed
-        
-#       GPIO.output(TRIG, False)                 #Set TRIG as LOW
-#       print("US switch is 1");
 
        time.sleep(0.0002)                            #Delay of 2 seconds(just to be safe)
 
@@ -76,32 +50,10 @@ def loop():
 
        distance = round(distance, 2)            #Round to two decimal points
 
-#       print("Distance: " + str(distance));
-
-       if distance > 10 and distance < 25:      #Check whether the distance is within range
-
-          GPIO.output(LED, True)  #LED HIGH 
-
-       else:
-
-          GPIO.output(LED, False)                   #LED LOW
-
-
-
-    if Ultrasoundswitch==0: #if toggled to off then 
-
-       pulse_duration=0   #reset pulse duration  
-
-       distance=0         #reset distnace
-
-       GPIO.output(LED, False)
-
-
+       print("Distance: " + str(distance));
 
 setup()
 
 while True: 
       loop()
       time.sleep(0.5);
-
-
