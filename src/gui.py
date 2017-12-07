@@ -6,7 +6,7 @@ import math
 from tkinter import *
 from tkinter import ttk
 import _thread
-
+from subprocess import call
 
 class LineFollowerGUI():
     
@@ -14,6 +14,8 @@ class LineFollowerGUI():
         self.status = "Started"
         self.battery = "N/A"
         self.facingTowardsA = False;
+        self.last_state_published = "Stop";
+        self.current_state = "Stop";
 
         self.root = Tk()
         self.root.title("GUI")
@@ -27,7 +29,7 @@ class LineFollowerGUI():
         self.root.geometry( "%dx%d+%d+%d" % (framew,frameh,posx,posy))
 
         self.currentStatus = StringVar();
-        self.currentStatus.set('Starting');
+        self.currentStatus.set('Stop');
 
         self.batteryStatus = StringVar();
         self.batteryStatus.set('95%');
@@ -54,21 +56,23 @@ class LineFollowerGUI():
     
     def goToA(self):
         print("if not facing towards A ( turn 180), start following line, publish, turn, or drive state");
-        self.currentStatus.set("Going to A");
         self.batteryStatus.set("92%");
+        self.current_state = "GoToA";
 
     def goToB(self):
         print("if facing towards A (turn 180), start following Line, publish, turn or follow line state");
-        self.currentStatus.set("Going to B");
-        while(True):
-            self.batteryStatus.set("90%");
-        
+        self.current_state = "GoToB";
 
     def Stop(self):
         print("stop");
-        self.currentStatus.set("Stopped");
+        self.current_state = "Stop";
 
     def updateLabel(self):
+        if(self.current_state != self.last_state_published):
+            call(["rostopic", "pub", "-1", "/gui_state", "std_msgs/String", self.current_state])
+            self.last_state_published = self.current_state;
+
+        self.currentStatus.set(self.current_state);
         self.statusLabel.update_idletasks();
         self.batteryLabel.update_idletasks();
     
@@ -77,6 +81,7 @@ class LineFollowerGUI():
 
     def __del__(self):
         pass;
+
 gui = LineFollowerGUI();
 gui.root.mainloop();
 

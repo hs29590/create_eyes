@@ -3,6 +3,7 @@ from __future__ import print_function
 import roslib
 roslib.load_manifest('create_eyes')
 from std_msgs.msg import String
+from std_msgs.msg import Bool
 import sys
 import rospy
 import time
@@ -17,8 +18,8 @@ class SonarClass:
              echo = pigpio.tickDiff(self.high_tick1, tick)
              cms = (echo / 1000000.0) * 34030 / 2
              #print("echo1 was {} micros long ({:.1f} cms)".format(echo, cms))
-             if(cms < 12.0):
-               self.desired_state = "Stop";
+             if(cms < self.USSensorStoppingRange):
+               self.safeToDrive = False;
        else:
           self.high_tick1 = tick
 
@@ -28,8 +29,8 @@ class SonarClass:
              echo = pigpio.tickDiff(self.high_tick2, tick)
              cms = (echo / 1000000.0) * 34030 / 2
              #print("echo2 was {} micros long ({:.1f} cms)".format(echo, cms))
-             if(cms < 12.0):
-               self.desired_state = "Stop";
+             if(cms < self.USSensorStoppingRange):
+               self.safeToDrive = False;
        else:
           self.high_tick2 = tick
 
@@ -39,8 +40,8 @@ class SonarClass:
              echo = pigpio.tickDiff(self.high_tick3, tick)
              cms = (echo / 1000000.0) * 34030 / 2
              #print("echo3 was {} micros long ({:.1f} cms)".format(echo, cms))
-             if(cms < 12.0):
-               self.desired_state = "Stop";
+             if(cms < self.USSensorStoppingRange):
+               self.safeToDrive = False;
        else:
           self.high_tick3 = tick
           
@@ -51,12 +52,14 @@ class SonarClass:
         self.ECHO2=26
         self.ECHO3=20
     
+        self.USSensorStoppingRange = 20.0;
+
         self.high_tick1 = None # global to hold high tick.
         self.high_tick2 = None # global to hold high tick.
         self.high_tick3 = None # global to hold high tick.
     
-        self.state_pub = rospy.Publisher('create_state', String, queue_size=1)
-        self.desired_state = "Drive";
+        self.state_pub = rospy.Publisher('sonar_drive', Bool, queue_size=1)
+        self.safeToDrive = True;
 
         self.pi = pigpio.pi() # Connect to local Pi.
 
@@ -76,10 +79,10 @@ class SonarClass:
         self.pi.stop() # Close connection to Pi 
 
     def triggerAndPublish(self):
-        self.desired_state = "Drive";
+        self.safeToDrive = True;
         self.pi.gpio_trigger(self.TRIGGER, 10);
         time.sleep(0.2);
-        self.state_pub.publish(self.desired_state);
+        self.state_pub.publish(self.safeToDrive);
 
 
 def main(args):
