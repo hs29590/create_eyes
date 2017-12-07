@@ -20,6 +20,8 @@ class DriveCreate2:
     self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
     self.state_sub = rospy.Subscriber('master_state', String, self.stateCallback)
     self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallbacl)
+    self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
+
 
     self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
     self.mode_pub = rospy.Publisher('mode', String, queue_size = 1)
@@ -30,7 +32,11 @@ class DriveCreate2:
     
     self.yaw = None;
     self.last_odom = Odometry();
-    
+    self.sonar_drive = False;
+
+  def sonarCallback(self, msg):
+      self.sonar_drive = msg.data;
+
   def command_turn(self,angleToTurn):
       alpha = angleToTurn
       theta = self.yaw;
@@ -128,7 +134,7 @@ class DriveCreate2:
     self.yaw = euler[2]
 
   def errCallback(self,err):
-    if(self.state == "FollowLine"):
+    if(self.state == "FollowLine" and self.sonar_drive):
         if(err.data == -1000.0):
             pass
         else:
