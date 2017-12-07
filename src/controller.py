@@ -10,7 +10,7 @@ from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
 import tf
-
+import time
 import numpy
 import math
 
@@ -54,7 +54,9 @@ class DriveCreate2:
               self.twist.linear.x = 0;
               self.twist.angular.z = 0.5;
               self.cmd_vel_pub.publish(self.twist);
+              time.sleep(0.1);
               current = self.yaw;
+              print("Turning: " + str(current) + " " + str(desired));
               if(current > desired):
                   break;
       elif(desired < starting):
@@ -62,7 +64,9 @@ class DriveCreate2:
               self.twist.linear.x = 0;
               self.twist.angular.z = -0.5;
               self.cmd_vel_pub.publish(self.twist);
+              time.sleep(0.1);
               current = self.yaw;
+              print("Turning: " + str(current) + " " + str(desired));
               if(current < desired):
                   break;
 

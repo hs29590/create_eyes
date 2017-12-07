@@ -54,11 +54,11 @@ class Create2StatePublisher:
 
   def guiCallback(self,msg):
       if(msg.data == "GoToA"):
-          if(self.docked):
-              self.publish("CONTROLLER_UnDock");
-              time.sleep(5);
-              self.headng = "A";
-          
+#if(self.docked):
+#              self.publish("CONTROLLER_UnDock");
+#              time.sleep(5);
+#              self.headng = "A";
+#          
           if(self.last_gui_state == "Stop"):
               if(self.heading == "A"):
                   self.publish("CONTROLLER_FollowLine");
@@ -69,11 +69,11 @@ class Create2StatePublisher:
       elif(msg.data == "GoToB"):
           if(self.last_gui_state == "Stop"):
               if(self.heading == "B"):
-                  #self.publish("CONTROLLER_FollowLine");
-                  self.publish("CONTROLLER_Dock");
-                  time.sleep(5);
-                  if(not self.docked):
-                      self.publish("CONTROLLER_FollowLine");
+                  self.publish("CONTROLLER_FollowLine");
+#                  self.publish("CONTROLLER_Dock");
+#                  time.sleep(5);
+#                  if(not self.docked):
+#                      self.publish("CONTROLLER_FollowLine");
               elif(self.heading == "A"):
                   self.turnAround();
                   self.publish("CONTROLLER_FollowLine");
