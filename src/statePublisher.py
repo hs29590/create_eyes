@@ -4,11 +4,13 @@ import roslib
 roslib.load_manifest('create_eyes')
 import sys
 import rospy
+import time
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
+from irobotcreate2.msg import Battery
 
 import numpy
 import math
@@ -19,6 +21,7 @@ class Create2StatePublisher:
   def __init__(self):
 
     self.gui_sub = rospy.Subscriber('gui_state', String, self.guiCallback)
+    self.bat_sub = rospy.Subscriber('battery', Battery, self.batteryCallback)
 
     self.master_state_pub = rospy.Publisher('master_state', String, queue_size=1)
 
@@ -26,18 +29,21 @@ class Create2StatePublisher:
     
     self.last_gui_state = "Stop";
     
-    #it is at Dock, so Undock    
-    self.publish("CONTROLLER_UnDock");
+    
+    #expect to start at Dock
+    self.heading = "B";
 
-    time.sleep(5);
-
-    self.heading = "A";
+    self.docked = True;
 
     self.publish("CONTROLLER_Stop");
-  
+ 
+  def batteryCallback(self,msg):
+      self.docked = msg.dock;
+ 
   def publish(self,msg):
       self.master_state_pub.publish(msg);
       self.last_state_published = msg;
+      print("Published: " + msg);
 
   def turnAround(self):
       self.publish("CONTROLLER_Turn");
@@ -48,6 +54,11 @@ class Create2StatePublisher:
 
   def guiCallback(self,msg):
       if(msg.data == "GoToA"):
+          if(self.docked):
+              self.publish("CONTROLLER_UnDock");
+              time.sleep(5);
+              self.headng = "A";
+          
           if(self.last_gui_state == "Stop"):
               if(self.heading == "A"):
                   self.publish("CONTROLLER_FollowLine");
@@ -60,6 +71,9 @@ class Create2StatePublisher:
               if(self.heading == "B"):
                   #self.publish("CONTROLLER_FollowLine");
                   self.publish("CONTROLLER_Dock");
+                  time.sleep(5);
+                  if(not self.docked):
+                      self.publish("CONTROLLER_FollowLine");
               elif(self.heading == "A"):
                   self.turnAround();
                   self.publish("CONTROLLER_FollowLine");

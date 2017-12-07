@@ -119,8 +119,8 @@ class line_extractor:
 #        self.twist.angular.z = 0.0
 #        if(self.noLineCount >= 20):
 #            self.cmd_vel_pub.publish(self.twist)
-#    cv2.imshow("window", image)
-#    cv2.waitKey(3)
+    cv2.imshow("window", image)
+    cv2.waitKey(3)
 #    elapsed = timeit.default_timer() - start_time
 #    print(elapsed);
 def main(args):

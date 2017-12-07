@@ -8,6 +8,8 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Bool
+import tf
 
 import numpy
 import math
@@ -16,15 +18,14 @@ import math
 class DriveCreate2:
 
   def __init__(self):
+    
+    self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+    self.mode_pub = rospy.Publisher('mode', String, queue_size = 1)
 
     self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
     self.state_sub = rospy.Subscriber('master_state', String, self.stateCallback)
-    self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallbacl)
+    self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
-
-
-    self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-    self.mode_pub = rospy.Publisher('mode', String, queue_size = 1)
 
     self.twist = Twist()
     
@@ -32,13 +33,47 @@ class DriveCreate2:
     
     self.yaw = None;
     self.last_odom = Odometry();
-    self.sonar_drive = False;
+    self.sonar_drive = True;
 
   def sonarCallback(self, msg):
       self.sonar_drive = msg.data;
 
-  def command_turn(self,angleToTurn):
+  def command_turn(self, angleToTurn):
+      rolled_over = False;
+      starting = self.yaw;
+      desired = starting + angleToTurn;
+      if(desired > math.pi):
+          desired = desired - 2*math.pi;
+      elif(desired < -math.pi):
+          desired = desired + 2*math.pi;
+      
+      current = starting;
+
+      if(desired > starting):
+          while(True):
+              self.twist.linear.x = 0;
+              self.twist.angular.z = 0.5;
+              self.cmd_vel_pub.publish(self.twist);
+              current = self.yaw;
+              if(current > desired):
+                  break;
+      elif(desired < starting):
+          while(True):
+              self.twist.linear.x = 0;
+              self.twist.angular.z = -0.5;
+              self.cmd_vel_pub.publish(self.twist);
+              current = self.yaw;
+              if(current < desired):
+                  break;
+
+      self.twist.angular.z = 0;
+      self.cmd_vel_pub.publish(self.twist);
+          
+
+  def command_turn1(self,angleToTurn):
       alpha = angleToTurn
+      rolled_over = False;
+
       theta = self.yaw;
       rollOverReqd = False;
       if(alpha > 0):
@@ -47,6 +82,9 @@ class DriveCreate2:
             desired_angle = desired_angle - 2*math.pi;
             rollOverReqd = True;
          while(True):
+            rolled_over = False;
+            if(theta*self.yaw < 0):
+                rolled_over = True;
             self.twist.linear.x = 0;
             self.twist.angular.z = 0.5;
             self.cmd_vel_pub.publish(self.twist)
@@ -55,7 +93,7 @@ class DriveCreate2:
                 if(not rollOverReqd):
                     break;
                 else:
-                    if(theta < 0):
+                    if(rolled_over):
                         break;
                     
             theta = self.yaw
@@ -66,6 +104,9 @@ class DriveCreate2:
               desired_angle = desired_angle + 2*math.pi;
               rollOverReqd = True;
           while(True):
+              rolled_over = False;
+              if(theta * self.yaw < 0):
+                  rolled_over = True;
               self.twist.linear.x = 0;
               self.twist.angular.z = -0.5;
               self.cmd_vel_pub.publish(self.twist);
@@ -74,7 +115,7 @@ class DriveCreate2:
                   if(not rollOverReqd):
                     break;
                   else:
-                    if(theta > 0):
+                    if(rolled_over):
                       break;
               theta = self.yaw
           
@@ -84,27 +125,27 @@ class DriveCreate2:
 
   def stateCallback(self,stateMsg):
     if(stateMsg.data == "CONTROLLER_FollowLine" ):
-        mode_pub.publish("safe");
+        self.mode_pub.publish("safe");
         self.state = "FollowLine";
 
     elif(stateMsg.data == "CONTROLLER_Stop"):
         self.state = "Stop";
-        mode_pub.publish("stop");
+        self.mode_pub.publish("stop");
         self.sendStopCmd();
         
     elif(stateMsg.data == "CONTROLLER_Turn"):
         self.state = "Turn";
-        mode_pub.publish("safe");
-        self.command_turn(math.pi):
+        self.mode_pub.publish("safe");
+        self.command_turn(math.pi);
         self.state = "Stop";
         
     elif(stateMsg.data == "CONTROLLER_Dock"):
         self.state = "Dock";
-        mode_pub.publish("dock");
+        self.mode_pub.publish("dock");
         
     elif(stateMsg.data == "CONTROLLER_UnDock"):
         self.state = "UnDock";
-        mode_pub.publish("safe");
+        self.mode_pub.publish("safe");
         self.undock();
         self.state = "Stop";
 
@@ -114,7 +155,7 @@ class DriveCreate2:
     print("Current state is: " + self.state);
 
   def undock(self):
-      self.twist.linear.x = -0.2;
+      self.twist.linear.x = -0.5;
       self.twist.angular.z = 0.0;
       self.cmd_vel_pub.publish(self.twist);
       time.sleep(4);

@@ -32,7 +32,7 @@ class LineFollowerGUI():
         self.currentStatus.set('Stop');
 
         self.batteryStatus = StringVar();
-        self.batteryStatus.set('95%');
+        self.batteryStatus.set('na%');
         
         self.mainframe = ttk.Frame(self.root, padding="10 10 30 30", height=400, width=500)
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
@@ -56,7 +56,7 @@ class LineFollowerGUI():
     
     def goToA(self):
         print("if not facing towards A ( turn 180), start following line, publish, turn, or drive state");
-        self.batteryStatus.set("92%");
+        self.batteryStatus.set("na%");
         self.current_state = "GoToA";
 
     def goToB(self):
