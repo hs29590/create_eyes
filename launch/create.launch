@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Receives CmdVel, takeoff, reset and land messages from the MQTT and publishes on ROS -->
+    <param name="mqttBroker" value="localhost" />
+    <param name="mqttBrokerPort" value="1883" />
+
+    <node name="followLine2" pkg="create_eyes" type="followLine2.py" output="screen" clear_params="true">
+        <param name="loop_rate" value="200" />
+
+    </node>
+    <!-- Sends Image and Navdata to the Mqtt broker -->
+    <node name="controller" pkg="create_eyes" type="controller.py" output="screen" clear_params="true">
+        <!-- Make sure the topics published are subscribed with the exact name -->
+        <param name="publishedMqttTopic_navdata" value="/mqtt/navdata"/>
+    </node>
+</launch>
+
