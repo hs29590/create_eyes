@@ -19,6 +19,14 @@ class DriveCreate2:
 
   def __init__(self):
     
+    self.state = "Stop"
+    self.twist = Twist()
+    self.yaw = None;
+    self.last_odom = Odometry();
+    self.sonar_drive = True;
+
+    self.odomRecd = False;
+
     self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
     self.mode_pub = rospy.Publisher('mode', String, queue_size = 1)
 
@@ -27,18 +35,13 @@ class DriveCreate2:
     self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
 
-    self.twist = Twist()
-    
-    self.state = "Stop"
-    
-    self.yaw = None;
-    self.last_odom = Odometry();
-    self.sonar_drive = True;
-
   def sonarCallback(self, msg):
       self.sonar_drive = msg.data;
 
   def command_turn(self, angleToTurn):
+      if(not self.odomRecd):
+          rospy.loginfo("Trying to turn without odom recd.");
+          return;
       rolled_over = False;
       starting = self.yaw;
       desired = starting + angleToTurn;
@@ -75,6 +78,9 @@ class DriveCreate2:
           
 
   def command_turn1(self,angleToTurn):
+      if(not self.odomRecd):
+          rospy.loginfo("Trying to turn without odom recd.");
+          return;
       alpha = angleToTurn
       rolled_over = False;
 
@@ -159,6 +165,9 @@ class DriveCreate2:
     print("Current state is: " + self.state);
 
   def undock(self):
+      if(not self.odomRecd):
+          rospy.loginfo("Trying to undock without odom recd.");
+          return;
       self.twist.linear.x = -0.5;
       self.twist.angular.z = 0.0;
       self.cmd_vel_pub.publish(self.twist);
@@ -173,6 +182,8 @@ class DriveCreate2:
     self.cmd_vel_pub.publish(self.twist)
     
   def odomCallback(self,msg):
+    if(not self.odomRecd):
+        self.odomRecd = True;
     self.last_odom = msg;
     quaternion = (msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z,msg.pose.pose.orientation.w)
     euler = tf.transformations.euler_from_quaternion(quaternion)
