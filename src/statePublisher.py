@@ -28,7 +28,7 @@ class Create2StatePublisher:
   def __init__(self):
 
     #self.gui_sub = rospy.Subscriber('gui_state', String, self.guiCallback)
-    self.bat_sub = rospy.Subscriber('battery', Battery, self.batteryCallback)
+    self.bat_sub = rospy.Subscriber('iRobot_0/battery', Battery, self.batteryCallback)
 
     self.master_state_pub = rospy.Publisher('master_state', String, queue_size=1)
 

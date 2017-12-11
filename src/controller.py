@@ -28,11 +28,11 @@ class DriveCreate2:
     self.odomRecd = False;
 
     self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-    self.mode_pub = rospy.Publisher('mode', String, queue_size = 1)
+    self.mode_pub = rospy.Publisher('iRobot_0/mode', String, queue_size = 1)
 
     self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
     self.state_sub = rospy.Subscriber('master_state', String, self.stateCallback)
-    self.odom_sub = rospy.Subscriber('odom', Odometry, self.odomCallback)
+    self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
 
   def sonarCallback(self, msg):
