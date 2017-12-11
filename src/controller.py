@@ -27,7 +27,7 @@ class DriveCreate2:
 
     self.odomRecd = False;
 
-    self.cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+    self.cmd_vel_pub = rospy.Publisher('iRobot_0/cmd_vel', Twist, queue_size=1)
     self.mode_pub = rospy.Publisher('iRobot_0/mode', String, queue_size = 1)
 
     self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
