@@ -5,12 +5,15 @@ roslib.load_manifest('create_eyes')
 import sys
 import rospy
 import time
-import _thread
+#import _thread
 import numpy
 import math
 
-from tkinter import *
-from tkinter import ttk
+#from tkinter import *
+#from tkinter import ttk
+from Tkinter import *
+import ttk
+
 
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
@@ -92,19 +95,19 @@ class Create2StatePublisher:
       #print("if not facing towards A ( turn 180), start following line, publish, turn, or drive state");
       print("GotoA");
       if(self.last_gui_state != "GoToA"):
-          self.last_gui_state = "GoToA";
+#      self.last_gui_state = "GoToA";
           self.guiButtonUpdate("GoToA");
   def goToB(self):
       print("GoToB");
       #print("if facing towards A (turn 180), start following Line, publish, turn or follow line state");
       if(self.last_gui_state != "GoToB"):
-          self.last_gui_state = "GoToB";
+#         self.last_gui_state = "GoToB";
           self.guiButtonUpdate("GoToB");
 
   def Stop(self):
       print("Stop");
       if(self.last_gui_state != "Stop"):
-          self.last_gui_state = "Stop";
+#         self.last_gui_state = "Stop";
           self.guiButtonUpdate("Stop");
 
   def updateLabel(self):
