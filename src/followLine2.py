@@ -23,7 +23,9 @@ class line_extractor:
   def __init__(self):
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/raspicam_node/image_raw",Image,self.callback)
-  
+
+    self.showImages = True;
+
     self.image = None;
     self.SCALE_FACTOR = 4;
     self.gray_image = None;
@@ -46,19 +48,42 @@ class line_extractor:
     image = cv2.resize(image,(int(320/self.SCALE_FACTOR),int(240/self.SCALE_FACTOR)));
     
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    hue_img, self.gray_image, v_img = cv2.split(hsv)  # extracting red channel
+    hue_img, sat_img, v_img = cv2.split(hsv)  # extracting red channel
     
-    blur=cv2.GaussianBlur(self.gray_image,(3,3),2)#blur the grayscale image
+
+
   
-    ret,th1 = cv2.threshold(blur,0,255,cv2.THRESH_OTSU)#using threshold remove noise
+    #ret,th1 = cv2.threshold(blur,0,255,cv2.THRESH_OTSU)#using threshold remove noise
   
-    closing = cv2.morphologyEx(th1, cv2.MORPH_CLOSE, kernel)
-    closing = cv2.morphologyEx(closing, cv2.MORPH_CLOSE, kernel)
+    #closing = cv2.morphologyEx(th1, cv2.MORPH_CLOSE, kernel)
+    #closing = cv2.morphologyEx(closing, cv2.MORPH_CLOSE, kernel)
     
-    lower_yellow = numpy.array([ 25, 106, 120])
-    upper_yellow = numpy.array([62, 174, 250])  
-    mask = closing;
-    
+    lower_sat = numpy.array([220])
+    upper_sat = numpy.array([255])
+
+    sat_mask = cv2.inRange(sat_img, lower_sat, upper_sat);
+
+    lower = numpy.uint8([0, 120, 120])
+    upper = numpy.uint8([255, 255, 255])
+
+    #yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow);
+    #masked = cv2.bitwise_and(image, image, mask = yellow_mask)
+
+    yellow_mask = cv2.inRange(image, lower, upper);
+    if(self.showImages):
+        cv2.imshow('sat',sat_mask);
+        cv2.waitKey(3);
+    #sat_masked = cv2.bitwise_and(image,image,mask=sat_mask);
+    masked = cv2.bitwise_and(sat_mask, sat_mask, mask = yellow_mask)
+
+    masked=cv2.GaussianBlur(masked,(3,3),2)#blur the grayscale image
+    masked = cv2.morphologyEx(masked,cv2.MORPH_ERODE, kernel)
+    #yellow_mask = cv2.inRange(image, lower, upper)
+    if(self.showImages):
+        cv2.imshow('y',masked);
+        cv2.waitKey(3)
+    #mask = closing;
+    mask = masked;
 
     h, w, d = image.shape
     search_top = 3*h/4
@@ -69,6 +94,9 @@ class line_extractor:
     mask[search_bot:h, 0:w] = 0
     mask[0:h, 0:search_left] = 0
     mask[0:h, search_right:w] = 0
+    if(self.showImages):
+        cv2.imshow("a",mask);
+        cv2.waitKey(3);
     M = cv2.moments(mask)
     if M['m00'] > 0:
         cx = int(M['m10']/M['m00'])
@@ -97,8 +125,9 @@ class line_extractor:
         self.line_state_pub.publish(False);
         self.err_pub.publish(err);
     
-    cv2.imshow("window", image)
-    cv2.waitKey(3)
+    if(self.showImages):
+        cv2.imshow("window", image)
+        cv2.waitKey(3)
 
 def main(args):
   rospy.init_node('line_extractor', anonymous=True)
