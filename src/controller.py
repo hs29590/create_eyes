@@ -59,7 +59,7 @@ class DriveCreate2:
               self.cmd_vel_pub.publish(self.twist);
               time.sleep(0.1);
               current = self.yaw;
-              print("Turning: " + str(current) + " " + str(desired));
+              rospy.loginfo("Turning: " + str(current) + " " + str(desired));
               if(current > desired):
                   break;
       elif(desired < starting):
@@ -69,7 +69,7 @@ class DriveCreate2:
               self.cmd_vel_pub.publish(self.twist);
               time.sleep(0.1);
               current = self.yaw;
-              print("Turning: " + str(current) + " " + str(desired));
+              rospy.loginfo("Turning: " + str(current) + " " + str(desired));
               if(current < desired):
                   break;
 
@@ -98,7 +98,7 @@ class DriveCreate2:
             self.twist.linear.x = 0;
             self.twist.angular.z = 0.5;
             self.cmd_vel_pub.publish(self.twist)
-            print("Turning: " + str(theta) + " to get to " + str(desired_angle));
+            rospy.loginfo("Turning: " + str(theta) + " to get to " + str(desired_angle));
             if((theta) > (desired_angle)):
                 if(not rollOverReqd):
                     break;
@@ -120,7 +120,7 @@ class DriveCreate2:
               self.twist.linear.x = 0;
               self.twist.angular.z = -0.5;
               self.cmd_vel_pub.publish(self.twist);
-              print("Turning: " + str(theta) + " to get to " + str(desired_angle));
+              rospy.loginfo("Turning: " + str(theta) + " to get to " + str(desired_angle));
               if(theta < desired_angle):
                   if(not rollOverReqd):
                     break;
@@ -160,9 +160,9 @@ class DriveCreate2:
         self.state = "Stop";
 
     else:
-        print("Recd. a state: (" + stateMsg.data + ") that isn't recognized");
+        rospy.logwarn("Recd. a state: (" + stateMsg.data + ") that isn't recognized");
 
-    print("Current state is: " + self.state);
+    rospy.loginfo("Current state is: " + self.state);
 
   def undock(self):
       if(not self.odomRecd):

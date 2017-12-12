@@ -30,6 +30,8 @@ class Create2StatePublisher:
     #self.gui_sub = rospy.Subscriber('gui_state', String, self.guiCallback)
     self.bat_sub = rospy.Subscriber('iRobot_0/battery', Battery, self.batteryCallback)
 
+    self.line_visible_sub = rospy.Subscriber('line_visible', Bool, self.lineVisibleCallback)
+
     self.master_state_pub = rospy.Publisher('master_state', String, queue_size=1)
 
     self.gui_state = "Stop";
@@ -46,6 +48,7 @@ class Create2StatePublisher:
     
     self.status = "Started"
     
+
     ##FROM GUI###
     self.battery = "N/A"
     self.facingTowardsA = False;
@@ -71,6 +74,9 @@ class Create2StatePublisher:
     
     self.headingStatus = StringVar();
     self.headingStatus.set('NA');
+    
+    self.lineVisible = StringVar();
+    self.lineVisible.set(str(False));
 
     self.mainframe = ttk.Frame(self.root, padding="10 10 30 30", height=400, width=500)
     self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
@@ -88,6 +94,9 @@ class Create2StatePublisher:
 
     self.headLabel = ttk.Label(self.mainframe, textvariable=self.headingStatus, font=('Helvetica',12));
     self.headLabel.grid(row=0,column=1);
+
+    self.lineLabel = ttk.Label(self.mainframe, textvariable=self.lineVisible, font=('Helvetica',12));
+    self.lineLabel.grid(row=0, column=0);
 
     ttk.Button(self.mainframe, text="Go To A", style='my.TButton', command=self.goToA, width=16).grid(row=2, rowspan=2, column=0, pady=25)
     ttk.Button(self.mainframe, text="Go To B/DOCK", style='my.TButton', command=self.goToB, width=16).grid(row=2, rowspan=2, column=1, pady=25)
@@ -125,10 +134,14 @@ class Create2StatePublisher:
       self.statusLabel.update_idletasks();
       self.batteryLabel.update_idletasks();
       self.headLabel.update_idletasks();
+      self.lineLabel.update_idletasks();
 
       self.root.update_idletasks();
       self.root.after(200, self.updateLabel);
  
+  def lineVisibleCallback(self,msg):
+      self.lineVisible.set("Line: " + str(msg.data));
+
   def batteryCallback(self,msg):
       self.docked = msg.dock;
       self.batteryStatus.set(str("%.2f" % round(msg.level,2))+"%, Docked: " + str(self.docked));
