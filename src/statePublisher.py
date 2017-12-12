@@ -32,6 +32,7 @@ class Create2StatePublisher:
 
     self.line_visible_sub = rospy.Subscriber('line_visible', Bool, self.lineVisibleCallback)
 
+    self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
     self.master_state_pub = rospy.Publisher('master_state', String, queue_size=1)
 
     self.gui_state = "Stop";
@@ -78,6 +79,9 @@ class Create2StatePublisher:
     self.lineVisible = StringVar();
     self.lineVisible.set(str(False));
 
+    self.sonarStatus = StringVar();
+    self.sonarStatus.set('No Obstruction');
+
     self.mainframe = ttk.Frame(self.root, padding="10 10 30 30", height=400, width=500)
     self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
     self.mainframe.columnconfigure(0, weight=50,minsize=50)
@@ -97,6 +101,9 @@ class Create2StatePublisher:
 
     self.lineLabel = ttk.Label(self.mainframe, textvariable=self.lineVisible, font=('Helvetica',12));
     self.lineLabel.grid(row=0, column=0);
+
+    self.sonarLabel = ttk.Label(self.mainframe, textvariable=self.sonarStatus, font=('Helvetica',12));
+    self.sonarLabel.grid(row=8,column=0, sticky=W);
 
     ttk.Button(self.mainframe, text="Go To A", style='my.TButton', command=self.goToA, width=16).grid(row=2, rowspan=2, column=0, pady=25)
     ttk.Button(self.mainframe, text="Go To B/DOCK", style='my.TButton', command=self.goToB, width=16).grid(row=2, rowspan=2, column=1, pady=25)
@@ -135,12 +142,19 @@ class Create2StatePublisher:
       self.batteryLabel.update_idletasks();
       self.headLabel.update_idletasks();
       self.lineLabel.update_idletasks();
+      self.sonarLabel.update_idletasks();
 
       self.root.update_idletasks();
       self.root.after(200, self.updateLabel);
  
   def lineVisibleCallback(self,msg):
       self.lineVisible.set("Line: " + str(msg.data));
+
+  def sonarCallback(self,msg):
+      if(msg.data):
+        self.sonarStatus.set('Safe To Drive');
+      else:
+        self.sonarStatus.set('Obstruction');
 
   def batteryCallback(self,msg):
       self.docked = msg.dock;
