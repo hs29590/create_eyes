@@ -46,7 +46,6 @@ class DriveCreate2:
       if(not self.odomRecd):
           rospy.loginfo("Trying to turn without odom recd.");
           return;
-      rolled_over = False;
       starting = self.yaw;
       desired = starting + angleToTurn;
       if(desired > math.pi):
@@ -89,62 +88,6 @@ class DriveCreate2:
 
       self.sendStopCmd();
           
-
-  def command_turn1(self,angleToTurn):
-      if(not self.odomRecd):
-          rospy.loginfo("Trying to turn without odom recd.");
-          return;
-      alpha = angleToTurn
-      rolled_over = False;
-
-      theta = self.yaw;
-      rollOverReqd = False;
-      if(alpha > 0):
-         desired_angle = theta + alpha;
-         if(desired_angle > math.pi):
-            desired_angle = desired_angle - 2*math.pi;
-            rollOverReqd = True;
-         while(True):
-            rolled_over = False;
-            if(theta*self.yaw < 0):
-                rolled_over = True;
-            self.twist.linear.x = 0;
-            self.twist.angular.z = 0.5;
-            self.cmd_vel_pub.publish(self.twist)
-            rospy.loginfo("Turning: " + str(theta) + " to get to " + str(desired_angle));
-            if((theta) > (desired_angle)):
-                if(not rollOverReqd):
-                    break;
-                else:
-                    if(rolled_over):
-                        break;
-                    
-            theta = self.yaw
-
-      elif(alpha < 0):
-          desired_angle = theta + alpha;
-          if(desired_angle < -math.pi):
-              desired_angle = desired_angle + 2*math.pi;
-              rollOverReqd = True;
-          while(True):
-              rolled_over = False;
-              if(theta * self.yaw < 0):
-                  rolled_over = True;
-              self.twist.linear.x = 0;
-              self.twist.angular.z = -0.5;
-              self.cmd_vel_pub.publish(self.twist);
-              rospy.loginfo("Turning: " + str(theta) + " to get to " + str(desired_angle));
-              if(theta < desired_angle):
-                  if(not rollOverReqd):
-                    break;
-                  else:
-                    if(rolled_over):
-                      break;
-              theta = self.yaw
-          
-      self.sendStopCmd();
-
-
   def stateCallback(self,stateMsg):
     if(stateMsg.data == "CONTROLLER_FollowLine" ):
         self.mode_pub.publish("safe");
@@ -189,10 +132,10 @@ class DriveCreate2:
       self.sendStopCmd();
 
   def sendStopCmd(self):
-    lin_v = self.LINEAR_SPEED;
+    lin_v = self.LINEAR_SPEED - 0.05;
+    self.twist.angular.z = 0;
     while(lin_v > 0):
         self.twist.linear.x = lin_v;
-        self.twist.angular.z = 0;
         lin_v = lin_v - 0.05;
         self.cmd_vel_pub.publish(self.twist);
 
@@ -213,11 +156,11 @@ class DriveCreate2:
         if(err.data == -1000.0):
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
+            #self.noLineCount = self.noLineCount + 1;
+            #if(self.noLineCount >= 50):
+            rospy.loginfo("Stopping since line isn't visible");
             self.sendStopCmd();
-            self.noLineCount = self.noLineCount + 1;
-            if(self.noLineCount >= 50):
-                rospy.loginfo("Changing state to Stop because no line visible for 50 counts");
-                self.state = "Stop"
+            self.state = "Stop"
 
         else:
             self.twist.linear.x = self.LINEAR_SPEED;
