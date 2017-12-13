@@ -37,6 +37,8 @@ class DriveCreate2:
     self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
 
+    self.isStopped = True;
+
     self.noLineCount = 0;
 
   def sonarCallback(self, msg):
@@ -139,6 +141,7 @@ class DriveCreate2:
         lin_v = lin_v - 0.05;
         self.cmd_vel_pub.publish(self.twist);
 
+    self.isStopped = True;
     self.twist.linear.x = 0.0
     self.twist.angular.z = 0.0
     self.cmd_vel_pub.publish(self.twist)
@@ -163,10 +166,20 @@ class DriveCreate2:
             self.state = "Stop"
 
         else:
-            self.twist.linear.x = self.LINEAR_SPEED;
-            self.twist.angular.z = (-float(err.data) / 50) ;
-            self.cmd_vel_pub.publish(self.twist)
-            self.noLineCount = 0;
+            if(self.isStopped):
+                self.isStopped = False;
+                lin_v = 0;
+                while(lin_v < self.LINEAR_SPEED):
+                    lin_v = lin_v + 0.1;
+                    self.twist.linear.x = lin_v;
+                    self.twist.angular.z = (-float(err.data) / 100);
+                    self.cmd_vel_pub.publish(self.twist);
+            else:
+                self.isStopped = False;
+                self.twist.linear.x = self.LINEAR_SPEED;
+                self.twist.angular.z = (-float(err.data) / 50) ;
+                self.cmd_vel_pub.publish(self.twist);
+                self.noLineCount = 0;
 
 def main(args):
   rospy.init_node('create_eyes_controller', anonymous=True)
