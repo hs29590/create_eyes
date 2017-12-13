@@ -51,8 +51,6 @@ class line_extractor:
     hue_img, sat_img, v_img = cv2.split(hsv)  # extracting red channel
     
 
-
-  
     #ret,th1 = cv2.threshold(blur,0,255,cv2.THRESH_OTSU)#using threshold remove noise
   
     #closing = cv2.morphologyEx(th1, cv2.MORPH_CLOSE, kernel)
@@ -88,8 +86,8 @@ class line_extractor:
     h, w, d = image.shape
     search_top = 3*h/4
     search_bot = h;
-    search_left = w/3;
-    search_right = 2*w/3;
+    search_left = w/8;
+    search_right = 7*w/8;
     mask[0:search_top, 0:w] = 0
     mask[search_bot:h, 0:w] = 0
     mask[0:h, 0:search_left] = 0

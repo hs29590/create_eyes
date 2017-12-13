@@ -53,8 +53,6 @@ class Create2StatePublisher:
     ##FROM GUI###
     self.battery = "N/A"
     self.facingTowardsA = False;
-    #self.last_state_published = "Stop";
-    #self.current_state = "Stop";
 
     self.root = Tk()
     self.root.title("GUI")
@@ -114,30 +112,22 @@ class Create2StatePublisher:
     ##END FROM GUI##
  
   def goToA(self):
-      #print("if not facing towards A ( turn 180), start following line, publish, turn, or drive state");
       rospy.loginfo("GotoA");
       if(self.last_gui_state != "GoToA"):
-#      self.last_gui_state = "GoToA";
           self.guiButtonUpdate("GoToA");
   def goToB(self):
       rospy.loginfo("GoToB");
-      #print("if facing towards A (turn 180), start following Line, publish, turn or follow line state");
       if(self.last_gui_state != "GoToB"):
-#         self.last_gui_state = "GoToB";
           self.guiButtonUpdate("GoToB");
 
   def Stop(self):
       rospy.loginfo("Stop");
       if(self.last_gui_state != "Stop"):
-#         self.last_gui_state = "Stop";
           self.guiButtonUpdate("Stop");
 
   def updateLabel(self):
-#      if(self.current_state != self.last_state_published):
-#          call(["rostopic", "pub", "-1", "/gui_state", "std_msgs/String", self.current_state])
-#          self.last_state_published = self.current_state;
-      self.currentStatus.set(self.last_gui_state);
-      self.headingStatus.set(self.heading);
+      self.currentStatus.set("State: " + self.last_gui_state);
+      self.headingStatus.set("Heading: " + self.heading);
       self.statusLabel.update_idletasks();
       self.batteryLabel.update_idletasks();
       self.headLabel.update_idletasks();
@@ -174,11 +164,6 @@ class Create2StatePublisher:
 
   def guiButtonUpdate(self,msg):
       if(msg == "GoToA"):
-#          if(self.docked):
-#              self.publish("CONTROLLER_UnDock");
-#              time.sleep(5);
-#              self.headng = "A";
-#          
           if(self.last_gui_state == "Stop"):
               if(self.heading == "A"):
                   self.publish("CONTROLLER_FollowLine");
@@ -190,10 +175,6 @@ class Create2StatePublisher:
           if(self.last_gui_state == "Stop"):
               if(self.heading == "B"):
                   self.publish("CONTROLLER_FollowLine");
-#                  self.publish("CONTROLLER_Dock");
-#                  time.sleep(5);
-#                  if(not self.docked):
-#                      self.publish("CONTROLLER_FollowLine");
               elif(self.heading == "A"):
                   self.turnAround();
                   self.publish("CONTROLLER_FollowLine");
@@ -210,8 +191,8 @@ def main(args):
   rospy.init_node('create_eyes_state_publisher', anonymous=True)
   ic = Create2StatePublisher()
   ic.root.mainloop();
-#  rospy.spin();
-        
+  #rospy.spin() is not needed because all it does is a blocking call which our gui mainloop will also do     
+
 if __name__ == '__main__':
     main(sys.argv)
 

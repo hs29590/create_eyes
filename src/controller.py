@@ -35,6 +35,8 @@ class DriveCreate2:
     self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
 
+    self.noLineCount = 0;
+
   def sonarCallback(self, msg):
       self.sonar_drive = msg.data;
 
@@ -53,24 +55,34 @@ class DriveCreate2:
       current = starting;
 
       if(desired > starting):
+          t_end = time.time() + 30;
           while(True):
               self.twist.linear.x = 0;
               self.twist.angular.z = 0.5;
               self.cmd_vel_pub.publish(self.twist);
-              time.sleep(0.1);
+              time.sleep(0.01);
               current = self.yaw;
-              rospy.loginfo("Turning: " + str(current) + " " + str(desired));
-              if(current > desired):
+              #rospy.loginfo_throttle(60, "This message will print every 60 seconds")
+              rospy.loginfo_throttle(5,"Turning: " + str(current) + " " + str(desired));
+              if(current > desired or current < starting):
+                  break;
+              if(time.time() > t_end):
+                  rospy.logwarn("Stopping the turn, couldn't finish it");
                   break;
       elif(desired < starting):
+          t_end = time.time() + 30;
           while(True):
               self.twist.linear.x = 0;
               self.twist.angular.z = -0.5;
               self.cmd_vel_pub.publish(self.twist);
-              time.sleep(0.1);
+              time.sleep(0.01);
               current = self.yaw;
-              rospy.loginfo("Turning: " + str(current) + " " + str(desired));
-              if(current < desired):
+              #rospy.loginfo("Turning: " + str(current) + " " + str(desired));
+              rospy.loginfo_throttle(5,"Turning: " + str(current) + " " + str(desired));
+              if(current < desired or current > starting):
+                  break;
+              if(time.time() > t_end):
+                  rospy.logwarn("Stopping the turn, couldn't finish it");
                   break;
 
       self.twist.angular.z = 0;
@@ -192,11 +204,17 @@ class DriveCreate2:
   def errCallback(self,err):
     if(self.state == "FollowLine" and self.sonar_drive):
         if(err.data == -1000.0):
-            pass
+            #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
+            #this is also done to stop the robot from following random things if it doesn't see the line
+            self.noLineCount = self.noLineCount + 1;
+            if(self.noLineCount >= 50):
+                rospy.loginfo("Changing state to Stop because no line visible for 50 counts");
+                self.state = "Stop"
         else:
-            self.twist.linear.x = 0.2
+            self.twist.linear.x = 0.4;
             self.twist.angular.z = (-float(err.data) / 100) ;
             self.cmd_vel_pub.publish(self.twist)
+            self.noLineCount = 0;
 
 def main(args):
   rospy.init_node('create_eyes_controller', anonymous=True)
