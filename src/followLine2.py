@@ -24,7 +24,7 @@ class line_extractor:
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/raspicam_node/image_raw",Image,self.callback)
 
-    self.showImages = True;
+    self.showImages = False;
 
     self.image = None;
     self.SCALE_FACTOR = 4;
@@ -86,8 +86,8 @@ class line_extractor:
     h, w, d = image.shape
     search_top = 3*h/4
     search_bot = h;
-    search_left = w/8;
-    search_right = 7*w/8;
+    search_left = w/4;
+    search_right = 3*w/4;
     mask[0:search_top, 0:w] = 0
     mask[search_bot:h, 0:w] = 0
     mask[0:h, 0:search_left] = 0

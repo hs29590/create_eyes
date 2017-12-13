@@ -25,6 +25,8 @@ class DriveCreate2:
     self.last_odom = Odometry();
     self.sonar_drive = True;
 
+    self.LINEAR_SPEED = 0.4;
+        
     self.odomRecd = False;
 
     self.cmd_vel_pub = rospy.Publisher('iRobot_0/cmd_vel', Twist, queue_size=1)
@@ -85,8 +87,7 @@ class DriveCreate2:
                   rospy.logwarn("Stopping the turn, couldn't finish it");
                   break;
 
-      self.twist.angular.z = 0;
-      self.cmd_vel_pub.publish(self.twist);
+      self.sendStopCmd();
           
 
   def command_turn1(self,angleToTurn):
@@ -141,8 +142,7 @@ class DriveCreate2:
                       break;
               theta = self.yaw
           
-      self.twist.angular.z = 0;
-      self.cmd_vel_pub.publish(self.twist);
+      self.sendStopCmd();
 
 
   def stateCallback(self,stateMsg):
@@ -189,6 +189,13 @@ class DriveCreate2:
       self.sendStopCmd();
 
   def sendStopCmd(self):
+    lin_v = self.LINEAR_SPEED;
+    while(lin_v > 0):
+        self.twist.linear.x = lin_v;
+        self.twist.angular.z = 0;
+        lin_v = lin_v - 0.05;
+        self.cmd_vel_pub.publish(self.twist);
+
     self.twist.linear.x = 0.0
     self.twist.angular.z = 0.0
     self.cmd_vel_pub.publish(self.twist)
@@ -206,13 +213,15 @@ class DriveCreate2:
         if(err.data == -1000.0):
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
+            self.sendStopCmd();
             self.noLineCount = self.noLineCount + 1;
             if(self.noLineCount >= 50):
                 rospy.loginfo("Changing state to Stop because no line visible for 50 counts");
                 self.state = "Stop"
+
         else:
-            self.twist.linear.x = 0.4;
-            self.twist.angular.z = (-float(err.data) / 100) ;
+            self.twist.linear.x = self.LINEAR_SPEED;
+            self.twist.angular.z = (-float(err.data) / 50) ;
             self.cmd_vel_pub.publish(self.twist)
             self.noLineCount = 0;
 
