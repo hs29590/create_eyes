@@ -181,14 +181,14 @@ class DriveCreate2:
         if(err.data == -1000.0):
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
-            self.noLineCount = self.noLineCount + 1;
-            if(self.noLineCount >= 20):
-                rospy.loginfo_throttle(5,"Stopping since line isn't visible");
-                self.smooth_drive(0.0,0.0);
-                self.state = "Stop";
+#            self.noLineCount = self.noLineCount + 1;
+#            if(self.noLineCount >= 20):
+            rospy.loginfo_throttle(5,"Stopping since line isn't visible");
+#                self.smooth_drive(0.0,0.0);
+            self.state = "Stop";
         else:
-            self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
-            self.noLineCount = 0;
+#            self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
+#            self.noLineCount = 0;
 
 #                self.isStopped = False;
 #                lin_v = 0;
