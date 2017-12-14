@@ -39,7 +39,23 @@ class DriveCreate2:
 
     self.isStopped = True;
 
+    self.last_drive_lin = 0.0;
+    self.last_drive_ang = 0.0;
+
     self.noLineCount = 0;
+
+  def smooth_drive(lin, ang):
+      self.twist.linear.x = self.last_drive_lin*0.5 + lin*0.5;
+      self.twist.angular.z = self.last_drive_ang*0.5 + ang*0.5;
+
+      if(self.twist.linear.x < 0.05 and self.twist.angular.z < 0.05):
+          self.twist.linear.x = 0.0;
+          self.twist.angular.z = 0.0;
+          
+      self.cmd_vel_pub.publish(self.twist);
+
+      self.last_drive_lin = self.twist.linear.x;
+      self.last_drive_ang = self.twist.angular.z;
 
   def sonarCallback(self, msg):
       self.sonar_drive = msg.data;
@@ -60,9 +76,10 @@ class DriveCreate2:
       if(desired > starting):
           t_end = time.time() + 30;
           while(True):
-              self.twist.linear.x = 0;
-              self.twist.angular.z = 0.5;
-              self.cmd_vel_pub.publish(self.twist);
+              self.smooth_drive(0.0,0.5);
+ #             self.twist.linear.x = 0;
+ #             self.twist.angular.z = 0.5;
+ #             self.cmd_vel_pub.publish(self.twist);
               time.sleep(0.01);
               current = self.yaw;
               #rospy.loginfo_throttle(60, "This message will print every 60 seconds")
@@ -75,10 +92,11 @@ class DriveCreate2:
       elif(desired < starting):
           t_end = time.time() + 30;
           while(True):
-              self.twist.linear.x = 0;
-              self.twist.angular.z = -0.5;
-              self.cmd_vel_pub.publish(self.twist);
-              time.sleep(0.01);
+              self.smooth_drive(0.0,-0.5);
+#              self.twist.linear.x = 0;
+#              self.twist.angular.z = -0.5;
+#              self.cmd_vel_pub.publish(self.twist);
+              time.sleep(0.001);
               current = self.yaw;
               #rospy.loginfo("Turning: " + str(current) + " " + str(desired));
               rospy.loginfo_throttle(5,"Turning: " + str(current) + " " + str(desired));
@@ -125,26 +143,28 @@ class DriveCreate2:
       if(not self.odomRecd):
           rospy.loginfo("Trying to undock without odom recd.");
           return;
-      self.twist.linear.x = -0.5;
-      self.twist.angular.z = 0.0;
-      self.cmd_vel_pub.publish(self.twist);
+      self.smooth_drive(-0.5, 0.0);
+#      self.twist.linear.x = -0.5;
+#      self.twist.angular.z = 0.0;
+#      self.cmd_vel_pub.publish(self.twist);
       time.sleep(4);
       self.sendStopCmd();
       self.command_turn(math.pi);
       self.sendStopCmd();
 
   def sendStopCmd(self):
-    lin_v = self.LINEAR_SPEED - 0.05;
-    self.twist.angular.z = 0;
-    while(lin_v > 0):
-        self.twist.linear.x = lin_v;
-        lin_v = lin_v - 0.05;
-        self.cmd_vel_pub.publish(self.twist);
-
-    self.isStopped = True;
-    self.twist.linear.x = 0.0
-    self.twist.angular.z = 0.0
-    self.cmd_vel_pub.publish(self.twist)
+      self.smooth_drive(0.0,0.0);
+#    lin_v = self.LINEAR_SPEED - 0.05;
+#    self.twist.angular.z = 0;
+#    while(lin_v > 0):
+#        self.twist.linear.x = lin_v;
+#        lin_v = lin_v - 0.05;
+#        #self.cmd_vel_pub.publish(self.twist);
+#
+#    self.isStopped = True;
+#    self.twist.linear.x = 0.0
+#    self.twist.angular.z = 0.0
+#    self.cmd_vel_pub.publish(self.twist)
     
   def odomCallback(self,msg):
     if(not self.odomRecd):
@@ -159,27 +179,27 @@ class DriveCreate2:
         if(err.data == -1000.0):
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
-            #self.noLineCount = self.noLineCount + 1;
-            #if(self.noLineCount >= 50):
-            rospy.loginfo("Stopping since line isn't visible");
-            self.sendStopCmd();
-            self.state = "Stop"
-
+            self.noLineCount = self.noLineCount + 1;
+            if(self.noLineCount >= 20):
+                rospy.loginfo("Stopping since line isn't visible");
+                self.smooth_drive(0.0,0.0);
         else:
-            if(self.isStopped):
-                self.isStopped = False;
-                lin_v = 0;
-                while(lin_v < self.LINEAR_SPEED):
-                    lin_v = lin_v + 0.1;
-                    self.twist.linear.x = lin_v;
-                    self.twist.angular.z = (-float(err.data) / 100);
-                    self.cmd_vel_pub.publish(self.twist);
-            else:
-                self.isStopped = False;
-                self.twist.linear.x = self.LINEAR_SPEED;
-                self.twist.angular.z = (-float(err.data) / 50) ;
-                self.cmd_vel_pub.publish(self.twist);
-                self.noLineCount = 0;
+            self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
+            self.noLineCount = 0;
+
+#                self.isStopped = False;
+#                lin_v = 0;
+#                while(lin_v < self.LINEAR_SPEED):
+#                    lin_v = lin_v + 0.1;
+#                    self.twist.linear.x = lin_v;
+#                    self.twist.angular.z = (-float(err.data) / 100);
+#                    self.cmd_vel_pub.publish(self.twist);
+#            else:
+#                self.isStopped = False;
+#                self.twist.linear.x = self.LINEAR_SPEED;
+#                self.twist.angular.z = (-float(err.data) / 50) ;
+#                self.cmd_vel_pub.publish(self.twist);
+#                self.noLineCount = 0;
 
 def main(args):
   rospy.init_node('create_eyes_controller', anonymous=True)

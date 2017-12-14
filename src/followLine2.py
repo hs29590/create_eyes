@@ -107,8 +107,9 @@ class line_extractor:
             self.prevCx = cx;
             
         #smoothing cx
-        cx = self.prevCx*0.5 + cx*0.5;
         
+        #cx = self.prevCx*0.5 + cx*0.5;
+       
         self.prevCx = cx;
         cv2.circle(image, (int(cx), int(cy)), 20, (0,0,255), -1)  
         err = cx - w/2
