@@ -44,7 +44,7 @@ class DriveCreate2:
 
     self.noLineCount = 0;
 
-  def smooth_drive(lin, ang):
+  def smooth_drive(self,lin, ang):
       self.twist.linear.x = self.last_drive_lin*0.5 + lin*0.5;
       #self.twist.angular.z = self.last_drive_ang*0.5 + ang*0.5;
 
