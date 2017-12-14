@@ -18,8 +18,7 @@ class SonarClass:
              echo = pigpio.tickDiff(self.high_tick1, tick)
              cms = (echo / 1000000.0) * 34030 / 2
              #print("echo1 was {} micros long ({:.1f} cms)".format(echo, cms))
-             if(cms < self.USSensorStoppingRange):
-               self.safeToDrive = False;
+             self.echo1Distance = self.echo1Distance*0.5 + 0.5*cms;
        else:
           self.high_tick1 = tick
 
@@ -29,8 +28,7 @@ class SonarClass:
              echo = pigpio.tickDiff(self.high_tick2, tick)
              cms = (echo / 1000000.0) * 34030 / 2
              #print("echo2 was {} micros long ({:.1f} cms)".format(echo, cms))
-             if(cms < self.USSensorStoppingRange):
-               self.safeToDrive = False;
+             self.echo2Distance = self.echo2Distance*0.5 + 0.5*cms;
        else:
           self.high_tick2 = tick
 
@@ -40,8 +38,7 @@ class SonarClass:
              echo = pigpio.tickDiff(self.high_tick3, tick)
              cms = (echo / 1000000.0) * 34030 / 2
              #print("echo3 was {} micros long ({:.1f} cms)".format(echo, cms))
-             if(cms < self.USSensorStoppingRange):
-               self.safeToDrive = False;
+             self.echo3Distance = self.echo3Distance*0.5 + 0.5*cms;
        else:
           self.high_tick3 = tick
           
@@ -51,7 +48,11 @@ class SonarClass:
         self.ECHO1=21
         self.ECHO2=26
         self.ECHO3=20
-    
+   
+        self.echo1Distance = 1000;
+        self.echo2Distance = 1000;
+        self.echo3Distance = 1000;
+
         self.USSensorStoppingRange = 20.0;
 
         self.high_tick1 = None # global to hold high tick.
@@ -81,8 +82,11 @@ class SonarClass:
     def triggerAndPublish(self):
         self.safeToDrive = True;
         self.pi.gpio_trigger(self.TRIGGER, 10);
-        time.sleep(0.2);
-        self.state_pub.publish(self.safeToDrive);
+        time.sleep(0.1);
+        if(echo1Distance < self.USSensorStoppingRange or echo2Distance < self.USSensorStoppingRange or echo3Distance < self.USSensorStoppingRange):
+            self.state_pub.publish(False);
+        else:
+            self.state_pub.publish(True);
 
 
 def main(args):

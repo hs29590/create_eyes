@@ -46,16 +46,18 @@ class DriveCreate2:
 
   def smooth_drive(lin, ang):
       self.twist.linear.x = self.last_drive_lin*0.5 + lin*0.5;
-      self.twist.angular.z = self.last_drive_ang*0.5 + ang*0.5;
+      #self.twist.angular.z = self.last_drive_ang*0.5 + ang*0.5;
 
-      if(self.twist.linear.x < 0.05 and self.twist.angular.z < 0.05):
+      self.twist.angular.z = ang;
+
+      if(self.twist.linear.x < 0.05):
           self.twist.linear.x = 0.0;
-          self.twist.angular.z = 0.0;
+          #self.twist.angular.z = 0.0;
           
       self.cmd_vel_pub.publish(self.twist);
 
       self.last_drive_lin = self.twist.linear.x;
-      self.last_drive_ang = self.twist.angular.z;
+      #self.last_drive_ang = self.twist.angular.z;
 
   def sonarCallback(self, msg):
       self.sonar_drive = msg.data;
@@ -181,8 +183,9 @@ class DriveCreate2:
             #this is also done to stop the robot from following random things if it doesn't see the line
             self.noLineCount = self.noLineCount + 1;
             if(self.noLineCount >= 20):
-                rospy.loginfo("Stopping since line isn't visible");
+                rospy.loginfo_throttle(5,"Stopping since line isn't visible");
                 self.smooth_drive(0.0,0.0);
+                self.state = "Stop";
         else:
             self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
             self.noLineCount = 0;
