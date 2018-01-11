@@ -13,6 +13,7 @@ import math
 #from tkinter import ttk
 from Tkinter import *
 import ttk
+import tkMessageBox
 
 
 from std_msgs.msg import String
@@ -34,6 +35,8 @@ class Create2StatePublisher:
 
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
     self.master_state_pub = rospy.Publisher('master_state', String, queue_size=1)
+    self.current_state_sub = rospy.Subscriber('iRobot_0/current_mode', String, self.current_mode_callback);
+
 
     self.gui_state = "Stop";
     
@@ -77,6 +80,9 @@ class Create2StatePublisher:
     self.lineVisible = StringVar();
     self.lineVisible.set(str(False));
 
+    self.current_oi_mode = StringVar();
+    self.current_oi_mode.set('NA');
+
     self.sonarStatus = StringVar();
     self.sonarStatus.set('No Obstruction');
 
@@ -100,17 +106,27 @@ class Create2StatePublisher:
     self.lineLabel = ttk.Label(self.mainframe, textvariable=self.lineVisible, font=('Helvetica',12));
     self.lineLabel.grid(row=0, column=0);
 
+    self.oiModeLabel = ttk.Label(self.mainframe, textvariable=self.current_oi_mode, font=('Helvetica',12));
+    self.oiModeLabel.grid(row=10,column=1);
+
     self.sonarLabel = ttk.Label(self.mainframe, textvariable=self.sonarStatus, font=('Helvetica',12));
     self.sonarLabel.grid(row=8,column=0, sticky=W);
 
     ttk.Button(self.mainframe, text="Go To A", style='my.TButton', command=self.goToA, width=16).grid(row=2, rowspan=2, column=0, pady=25)
-    ttk.Button(self.mainframe, text="Go To B/DOCK", style='my.TButton', command=self.goToB, width=16).grid(row=2, rowspan=2, column=1, pady=25)
+    ttk.Button(self.mainframe, text="Go To B", style='my.TButton', command=self.goToB, width=16).grid(row=2, rowspan=2, column=1, pady=25)
     ttk.Button(self.mainframe, text="STOP", style='my.TButton', command=self.Stop, width=16).grid(row=4, rowspan=3, column=0, columnspan=3, pady=5)
-    
+    ttk.Button(self.mainframe, text="Dock", style='my.TButton', command=self.dock, width = 16).grid(row=8,column=0, pady=5)
+    ttk.Button(self.mainframe, text="Un-Dock", style='my.TButton', command=self.undock, width = 16).grid(row=8,column=1, pady=5)
+
+    ttk.Button(self.mainframe, text="Reset", style='my.TButton', command=self.resetPressed, width=16).grid(row=10, column=0, pady=5)
+
     self.root.after(1000, self.updateLabel);
     
     ##END FROM GUI##
  
+  def resetPressed(self):
+      self.publish("CONTROLLER_Reset");
+
   def goToA(self):
       rospy.loginfo("GotoA");
       if(self.last_gui_state != "GoToA"):
@@ -125,6 +141,22 @@ class Create2StatePublisher:
       if(self.last_gui_state != "Stop"):
           self.guiButtonUpdate("Stop");
 
+  def dock(self):
+      if(self.docked):
+          tkMessageBox.showerror("Error", "Already Docked")
+      else:
+          self.publish("CONTROLLER_Dock");
+
+  def undock(self):
+      if(not self.docked):
+          tkMessageBox.showerror("Error", "Not Docked")
+      else:
+        self.publish("CONTROLLER_UnDock");
+        if(self.heading == "A"):
+          self.heading = "B";
+        elif(self.heading == "B"):
+          self.heading = "A";
+
   def updateLabel(self):
       self.currentStatus.set("State: " + self.last_gui_state);
       self.headingStatus.set("Heading: " + self.heading);
@@ -132,6 +164,7 @@ class Create2StatePublisher:
       self.batteryLabel.update_idletasks();
       self.headLabel.update_idletasks();
       self.lineLabel.update_idletasks();
+      self.oiModeLabel.update_idletasks();
       self.sonarLabel.update_idletasks();
 
       self.root.update_idletasks();
@@ -139,6 +172,9 @@ class Create2StatePublisher:
  
   def lineVisibleCallback(self,msg):
       self.lineVisible.set("Line: " + str(msg.data));
+
+  def current_mode_callback(self,msg):
+      self.current_oi_mode.set("OI Mode: " + msg.data);
 
   def sonarCallback(self,msg):
       if(msg.data):

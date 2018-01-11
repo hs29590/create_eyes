@@ -132,28 +132,26 @@ class DriveCreate2:
         
     elif(stateMsg.data == "CONTROLLER_UnDock"):
         self.state = "UnDock";
+        self.mode_pub.publish("clean");
+        time.sleep(8.5);
         self.mode_pub.publish("safe");
-        self.undock();
+
         self.state = "Stop";
+        self.sendStopCmd();
+
+    elif(stateMsg.data == "CONTROLLER_Reset"):
+        rospy.loginfo("Publishing reset, waiting 7 sec..");
+        self.mode_pub.publish("reset");
+        time.sleep(7);
+        self.mode_pub.publish("start");
+        rospy.loginfo("Published Start..");
 
     else:
         rospy.logwarn("Recd. a state: (" + stateMsg.data + ") that isn't recognized");
 
     rospy.loginfo("Current state is: " + self.state);
 
-  def undock(self):
-      if(not self.odomRecd):
-          rospy.loginfo("Trying to undock without odom recd.");
-          return;
-      self.smooth_drive(-0.5, 0.0);
-#      self.twist.linear.x = -0.5;
-#      self.twist.angular.z = 0.0;
-#      self.cmd_vel_pub.publish(self.twist);
-      time.sleep(4);
-      self.sendStopCmd();
-      self.command_turn(math.pi);
-      self.sendStopCmd();
-
+  
   def sendStopCmd(self):
       self.smooth_drive(0.0,0.0);
 #    lin_v = self.LINEAR_SPEED - 0.05;
@@ -181,14 +179,14 @@ class DriveCreate2:
         if(err.data == -1000.0):
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
-#            self.noLineCount = self.noLineCount + 1;
-#            if(self.noLineCount >= 20):
-            rospy.loginfo_throttle(5,"Stopping since line isn't visible");
-#                self.smooth_drive(0.0,0.0);
-            self.state = "Stop";
+            self.noLineCount = self.noLineCount + 1;
+            if(self.noLineCount >= 20):
+                rospy.loginfo_throttle(5,"Stopping since line isn't visible");
+                self.smooth_drive(0.0,0.0);
+                self.state = "Stop";
         else:
-#            self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
-#            self.noLineCount = 0;
+            self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
+            self.noLineCount = 0;
 
 #                self.isStopped = False;
 #                lin_v = 0;
