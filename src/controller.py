@@ -7,6 +7,7 @@ import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
 import tf
@@ -36,6 +37,7 @@ class DriveCreate2:
     self.state_sub = rospy.Subscriber('master_state', String, self.stateCallback)
     self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
+#    self.pid_err_sub = rospy.Subscriber('control_effort', Float64, self.ctrleffortCallback)
 
     self.isStopped = True;
 
@@ -48,6 +50,7 @@ class DriveCreate2:
       self.twist.linear.x = self.last_drive_lin*0.5 + lin*0.5;
       #self.twist.angular.z = self.last_drive_ang*0.5 + ang*0.5;
 
+      #self.twist.linear.x = lin;
       self.twist.angular.z = ang;
 
       if(self.twist.linear.x < 0.05):
@@ -56,7 +59,7 @@ class DriveCreate2:
           
       self.cmd_vel_pub.publish(self.twist);
 
-      self.last_drive_lin = self.twist.linear.x;
+ #     self.last_drive_lin = self.twist.linear.x;
       #self.last_drive_ang = self.twist.angular.z;
 
   def sonarCallback(self, msg):
@@ -186,7 +189,12 @@ class DriveCreate2:
                 self.state = "Stop";
         else:
             self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
+#            rospy.logwarn_throttle(10,"here drive is commented out...");
             self.noLineCount = 0;
+
+#  def ctrleffortCallback(self,err):
+  #    if(self.state == "FollowLine" and self.sonar_drive):
+#          self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
 
 #                self.isStopped = False;
 #                lin_v = 0;

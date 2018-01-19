@@ -8,6 +8,7 @@ import time
 #import _thread
 import numpy
 import math
+from subprocess import call
 
 #from tkinter import *
 #from tkinter import ttk
@@ -37,12 +38,12 @@ class Create2StatePublisher:
     self.master_state_pub = rospy.Publisher('master_state', String, queue_size=1)
     self.current_state_sub = rospy.Subscriber('iRobot_0/current_mode', String, self.current_mode_callback);
 
-
     self.gui_state = "Stop";
     
     self.last_gui_state = "Stop";
     
     
+
     #expect to start at Dock
     self.heading = "B";
 
@@ -125,7 +126,9 @@ class Create2StatePublisher:
     ##END FROM GUI##
  
   def resetPressed(self):
+      tkMessageBox.showerror("Error", "Trying to Reset The Robot, Please wait 10 sec..")
       self.publish("CONTROLLER_Reset");
+      time.sleep(9);
 
   def goToA(self):
       rospy.loginfo("GotoA");
@@ -185,6 +188,12 @@ class Create2StatePublisher:
   def batteryCallback(self,msg):
       self.docked = msg.dock;
       self.batteryStatus.set(str("%.2f" % round(msg.level,2))+"%, Docked: " + str(self.docked));
+      if(msg.level < 0 or msg.level > 100):
+        tkMessageBox.showerror("Error", "Trying to Reset The Robot, Please wait..")
+        self.publish("CONTROLLER_Reset");
+        time.sleep(9);
+        
+
        
   def publish(self,msg):
       self.master_state_pub.publish(msg);
@@ -200,6 +209,7 @@ class Create2StatePublisher:
 
   def guiButtonUpdate(self,msg):
       if(msg == "GoToA"):
+          call(["rosservice", "call", "/raspicam_node/start_capture"]);
           if(self.last_gui_state == "Stop"):
               if(self.heading == "A"):
                   self.publish("CONTROLLER_FollowLine");
@@ -208,6 +218,7 @@ class Create2StatePublisher:
                   self.publish("CONTROLLER_FollowLine");
 
       elif(msg == "GoToB"):
+          call(["rosservice", "call", "/raspicam_node/start_capture"]);
           if(self.last_gui_state == "Stop"):
               if(self.heading == "B"):
                   self.publish("CONTROLLER_FollowLine");
@@ -217,7 +228,8 @@ class Create2StatePublisher:
 
       elif(msg == "Stop"):
           self.publish("CONTROLLER_Stop");
-
+          call(["rosservice", "call", "/raspicam_node/stop_capture"]);
+      
       else:
           rospy.logwarn("Unknown state: " + msg);
     
