@@ -111,7 +111,7 @@ class Create2StatePublisher:
     self.oiModeLabel.grid(row=10,column=1);
 
     self.sonarLabel = ttk.Label(self.mainframe, textvariable=self.sonarStatus, font=('Helvetica',12));
-    self.sonarLabel.grid(row=8,column=0, sticky=W);
+    self.sonarLabel.grid(row=11,column=1, sticky=W);
 
     ttk.Button(self.mainframe, text="Go To A", style='my.TButton', command=self.goToA, width=16).grid(row=2, rowspan=2, column=0, pady=25)
     ttk.Button(self.mainframe, text="Go To B", style='my.TButton', command=self.goToB, width=16).grid(row=2, rowspan=2, column=1, pady=25)
