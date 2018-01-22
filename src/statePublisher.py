@@ -188,10 +188,10 @@ class Create2StatePublisher:
   def batteryCallback(self,msg):
       self.docked = msg.dock;
       self.batteryStatus.set(str("%.2f" % round(msg.level,2))+"%, Docked: " + str(self.docked));
-      if(msg.level < 0 or msg.level > 100):
-        tkMessageBox.showerror("Error", "Trying to Reset The Robot, Please wait..")
-        self.publish("CONTROLLER_Reset");
-        time.sleep(9);
+      #if(msg.level < 0 or msg.level > 100):
+      #  tkMessageBox.showerror("Error", "Trying to Reset The Robot, Please wait..")
+      #  self.publish("CONTROLLER_Reset");
+      #  time.sleep(9);
         
 
        
