@@ -83,7 +83,7 @@ class SonarClass:
         self.safeToDrive = True;
         self.pi.gpio_trigger(self.TRIGGER, 10);
         time.sleep(0.1);
-        if(echo1Distance < self.USSensorStoppingRange or echo2Distance < self.USSensorStoppingRange or echo3Distance < self.USSensorStoppingRange):
+        if(self.echo1Distance < self.USSensorStoppingRange or self.echo2Distance < self.USSensorStoppingRange or self.echo3Distance < self.USSensorStoppingRange):
             self.state_pub.publish(False);
         else:
             self.state_pub.publish(True);
