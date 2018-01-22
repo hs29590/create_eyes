@@ -215,7 +215,7 @@ class Create2StatePublisher:
                   self.publish("CONTROLLER_FollowLine");
               elif(self.heading == "B"):
                   self.turnAround();
-                  self.publish("CONTROLLER_FollowLine");
+                  #self.publish("CONTROLLER_FollowLine");
 
       elif(msg == "GoToB"):
           call(["rosservice", "call", "/raspicam_node/start_capture"]);
@@ -224,7 +224,7 @@ class Create2StatePublisher:
                   self.publish("CONTROLLER_FollowLine");
               elif(self.heading == "A"):
                   self.turnAround();
-                  self.publish("CONTROLLER_FollowLine");
+                  #self.publish("CONTROLLER_FollowLine");
 
       elif(msg == "Stop"):
           self.publish("CONTROLLER_Stop");
