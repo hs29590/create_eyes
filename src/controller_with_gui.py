@@ -26,17 +26,9 @@ class DriveCreate2:
 
   def __init__(self):
     
-    self.LINEAR_SPEED = 0.4;
+    self.LINEAR_SPEED = 0.8;
    
     self.state = "Stop"
-
-    #Subscribers
-    self.bat_sub = rospy.Subscriber('iRobot_0/battery', Battery, self.batteryCallback)
-    self.line_visible_sub = rospy.Subscriber('line_visible', Bool, self.lineVisibleCallback)
-    self.current_mode_sub = rospy.Subscriber('iRobot_0/current_mode', String, self.current_mode_callback);
-    self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
-    self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
-    self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
     
     #Publishers
     self.cmd_vel_pub = rospy.Publisher('iRobot_0/cmd_vel', Twist, queue_size=1)
@@ -123,6 +115,14 @@ class DriveCreate2:
     self.last_drive_lin = 0.0;
     self.last_drive_ang = 0.0;
     self.noLineCount = 0;
+    
+    #Subscribers
+    self.bat_sub = rospy.Subscriber('iRobot_0/battery', Battery, self.batteryCallback)
+    self.line_visible_sub = rospy.Subscriber('line_visible', Bool, self.lineVisibleCallback)
+    self.current_mode_sub = rospy.Subscriber('iRobot_0/current_mode', String, self.current_mode_callback);
+    self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
+    self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
+    self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
 
   def resetPressed(self):
       tkMessageBox.showerror("Error", "Trying to Reset The Robot, Please wait 10 sec..")
@@ -133,7 +133,6 @@ class DriveCreate2:
       rospy.loginfo("Published Start..");
       
   def goToA(self):
-      #call(["rosservice", "call", "/raspicam_node/start_capture"]);
       if(self.heading == "A"):
           self.mode_pub.publish("safe");
           self.state = "FollowLine";
@@ -141,6 +140,10 @@ class DriveCreate2:
           self.state = "Turn";
           self.mode_pub.publish("safe");
           if(self.command_turn(math.pi)):
+              if(self.heading == "A"):
+                  self.heading = "B";
+              elif(self.heading == "B"):
+                  self.heading = "A";
               self.state = "FollowLine";
           else:
               self.state = "Error, Turn not successfull";
@@ -154,6 +157,10 @@ class DriveCreate2:
           self.state = "Turn";
           self.mode_pub.publish("safe");
           if(self.command_turn(math.pi)):
+              if(self.heading == "A"):
+                  self.heading = "B";
+              elif(self.heading == "B"):
+                  self.heading = "A";
               self.state = "FollowLine";
           else:
               self.state = "Error, Turn not successfull";
@@ -208,10 +215,10 @@ class DriveCreate2:
         self.sonarStatus.set('Obstruction');
 
   def batteryCallback(self,msg):
-      if(not self.docked and msg.dock):
-          # If I wasn't docked and now I am docked, then reset once.
-          time.sleep(2);    
-          resetPressed();
+      #if(not self.docked and msg.dock):
+      #    # If I wasn't docked and now I am docked, then reset once.
+      #     time.sleep(2);    
+      #    self.resetPressed();
 
       self.docked = msg.dock;
       if(self.docked):
@@ -311,7 +318,6 @@ def main(args):
   rospy.init_node('create_eyes_controller', anonymous=True)
   ic = DriveCreate2()
   ic.root.mainloop();
-  print("hello World")
   #rospy.spin is just a blocking call, which my guy above does as well.
 #  rospy.spin();
         
