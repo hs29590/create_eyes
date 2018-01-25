@@ -83,8 +83,8 @@ class line_extractor:
     mask = masked;
 
     h, w, d = image.shape
-    search_top = 3*h/4
-    search_bot = h;
+    search_top = h/3;
+    search_bot = 2*h/3;
     search_left = w/4;
     search_right = 3*w/4;
     mask[0:search_top, 0:w] = 0
