@@ -137,7 +137,7 @@ class line_extractor:
         self.line_state_pub.publish(True);
         if(not self.use_pid):
             self.err_pub.publish(err);
-	print("Err is: ", err);
+#print("Err is: ", err);
 
     else: #Moment not available. Probably, line isn't there
         err = -1000.0;

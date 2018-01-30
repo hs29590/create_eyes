@@ -21,17 +21,16 @@ class Buzzer(object):
  def __del__(self):
   class_name = self.__class__.__name__
   print (class_name, "finished")
-
- def buzz(self,pitch, duration):   #create the function “buzz” and feed it the pitch and duration)
- 
+    
+ def buzz(self,pitch, duration): 
   if(pitch==0):
    time.sleep(duration)
    return
   period = 1.0 / pitch     #in physics, the period (sec/cyc) is the inverse of the frequency (cyc/sec)
   delay = period / 2     #calcuate the time for half of the wave  
-  cycles = int(duration * pitch)   #the number of waves to produce is the duration times the frequency
-
-  for i in range(cycles):    #start a loop from 0 to the variable “cycles” calculated above
+  cycles = int(duration * pitch);
+  #the number of waves to produce is the duration times the frequency
+  for i in range(cycles):
    GPIO.output(self.buzzer_pin, True)   #set pin 18 to high
    time.sleep(delay)    #wait with pin 18 high
    GPIO.output(self.buzzer_pin, False)    #set pin 18 to low
@@ -47,7 +46,7 @@ class Buzzer(object):
     pitches=[262,294,330,349,392,440,494,523, 587, 659,698,784,880,988,1047]
     duration=0.1
     for p in pitches:
-      self.buzz(p, duration)  #feed the pitch and duration to the function, “buzz”
+      self.buzz(p, duration)
       time.sleep(duration *0.5)
     for p in reversed(pitches):
       self.buzz(p, duration)
@@ -57,7 +56,7 @@ class Buzzer(object):
     pitches=[262,330,392,523,1047]
     duration=[0.2,0.2,0.2,0.2,0.2,0,5]
     for p in pitches:
-      self.buzz(p, duration[x])  #feed the pitch and duration to the function, “buzz”
+      self.buzz(p, duration[x])
       time.sleep(duration[x] *0.5)
       x+=1
   elif(tune==3):
@@ -67,6 +66,10 @@ class Buzzer(object):
       self.buzz(p, duration[x])  #feed the pitch and duration to the func$
       time.sleep(duration[x] *0.5)
       x+=1
+    for l in range(0,10):
+        for p in range(0,3):
+            self.buzz(p, 1)
+            time.sleep(1)
 
   elif(tune==4):
     pitches=[1047, 988,659]
