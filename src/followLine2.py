@@ -83,7 +83,7 @@ class line_extractor:
     mask = masked;
 
     h, w, d = image.shape
-    search_top = h/3;
+    search_top = 0;
     search_bot = 2*h/3;
     search_left = w/4;
     search_right = 3*w/4;
@@ -110,7 +110,7 @@ class line_extractor:
         cx = self.prevCx*0.5 + cx*0.5;
        
         self.prevCx = cx;
-        cv2.circle(image, (int(cx), int(cy)), 20, (0,0,255), -1)  
+        cv2.circle(image, (int(cx), int(cy)), 5, (0,0,255), -1)  
         err = cx - w/2
 
         err = self.SCALE_FACTOR * err;
