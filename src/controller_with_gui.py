@@ -51,14 +51,14 @@ class DriveCreate2:
     self.batteryStatus = StringVar();
     self.batteryStatus.set("Battery: na%");
     
-    self.headingStatus = StringVar();
-    self.headingStatus.set("Heading: NA");
+    #self.headingStatus = StringVar();
+    #self.headingStatus.set("Heading: NA");
     
     self.lineVisible = StringVar();
     self.lineVisible.set("Line: False");
 
     self.current_oi_mode = StringVar();
-    self.current_oi_mode.set('NA');
+    self.current_oi_mode.set('OI_Mode: NA');
 
     self.sonarStatus = StringVar();
     self.sonarStatus.set("Sonar: No Obstruction");
@@ -75,8 +75,8 @@ class DriveCreate2:
     self.statusLabel = ttk.Label(self.mainframe, textvariable=self.currentStatus, font=('Helvetica',12));
     self.statusLabel.grid(row=1, column=0);
 
-    self.headLabel = ttk.Label(self.mainframe, textvariable=self.headingStatus, font=('Helvetica',12));
-    self.headLabel.grid(row=0,column=1);
+    #self.headLabel = ttk.Label(self.mainframe, textvariable=self.headingStatus, font=('Helvetica',12));
+    #self.headLabel.grid(row=0,column=1);
 
     self.lineLabel = ttk.Label(self.mainframe, textvariable=self.lineVisible, font=('Helvetica',12));
     self.lineLabel.grid(row=0, column=0);
@@ -85,17 +85,17 @@ class DriveCreate2:
     self.oiModeLabel.grid(row=10,column=1);
 
     self.sonarLabel = ttk.Label(self.mainframe, textvariable=self.sonarStatus, font=('Helvetica',12));
-    self.sonarLabel.grid(row=11,column=1, sticky=W);
+    self.sonarLabel.grid(row=0,column=1, sticky=W);
 
     #GUI Buttons
     self.buttonStyle = ttk.Style()
     self.buttonStyle.configure('my.TButton', font=('Helvetica', 18))
 
-    ttk.Button(self.mainframe, text="Go To A", style='my.TButton', command=self.goToA, width=16).grid(row=2, rowspan=2, column=0, pady=25)
-    ttk.Button(self.mainframe, text="Go To B", style='my.TButton', command=self.goToB, width=16).grid(row=2, rowspan=2, column=1, pady=25)
+    ttk.Button(self.mainframe, text="Go", style='my.TButton', command=self.goAhead, width=16).grid(row=2, rowspan=2, column=0, pady=25)
+    ttk.Button(self.mainframe, text="Turn and Go", style='my.TButton', command=self.turnAndGo, width=16).grid(row=2, rowspan=2, column=1, pady=25)
     ttk.Button(self.mainframe, text="STOP", style='my.TButton', command=self.Stop, width=16).grid(row=4, rowspan=3, column=0, columnspan=3, pady=5)
-    ttk.Button(self.mainframe, text="Dock", style='my.TButton', command=self.dock, width = 16).grid(row=8,column=0, pady=5)
-    ttk.Button(self.mainframe, text="Un-Dock", style='my.TButton', command=self.undock, width = 16).grid(row=8,column=1, pady=5)
+    ttk.Button(self.mainframe, text="Dock", style='my.TButton', command=self.dock, width = 16).grid(row=8,column=0, pady=15)
+    ttk.Button(self.mainframe, text="Un-Dock", style='my.TButton', command=self.undock, width = 16).grid(row=8,column=1, pady=15)
 
     ttk.Button(self.mainframe, text="Reset", style='my.TButton', command=self.resetPressed, width=16).grid(row=10, column=0, pady=5)
 
@@ -105,7 +105,7 @@ class DriveCreate2:
     #Robot Variables
 
     self.docked = False;
-    self.heading = "B";
+    #self.heading = "B";
     self.battery = "N/A"
     self.twist = Twist()
     self.yaw = None;
@@ -132,38 +132,38 @@ class DriveCreate2:
       self.mode_pub.publish("start");
       rospy.loginfo("Published Start..");
       
-  def goToA(self):
-      if(self.heading == "A"):
-          self.mode_pub.publish("safe");
-          self.state = "FollowLine";
-      elif(self.heading == "B"):
-          self.state = "Turn";
-          self.mode_pub.publish("safe");
-          if(self.command_turn(math.pi)):
-              if(self.heading == "A"):
-                  self.heading = "B";
-              elif(self.heading == "B"):
-                  self.heading = "A";
-              self.state = "FollowLine";
-          else:
-              self.state = "Error, Turn not successfull";
+  def goAhead(self):
+      #if(self.heading == "A"):
+      self.mode_pub.publish("safe");
+      self.state = "FollowLine";
+      #elif(self.heading == "B"):
+      #    self.state = "Turn";
+      #    self.mode_pub.publish("safe");
+      #    if(self.command_turn(math.pi)):
+      #        if(self.heading == "A"):
+      #            self.heading = "B";
+      #        elif(self.heading == "B"):
+      #            self.heading = "A";
+      #        self.state = "FollowLine";
+      #    else:
+      #        self.state = "Error, Turn not successfull";
           
-  def goToB(self):
+  def turnAndGo(self):
       #call(["rosservice", "call", "/raspicam_node/start_capture"]);
-      if(self.heading == "B"):
-          self.mode_pub.publish("safe");
+      #if(self.heading == "B"):
+      #    self.mode_pub.publish("safe");
+      #    self.state = "FollowLine";
+      #elif(self.heading == "A"):
+      self.state = "Turn";
+      self.mode_pub.publish("safe");
+      if(self.command_turn(math.pi)):
+              #if(self.heading == "A"):
+              #    self.heading = "B";
+              #elif(self.heading == "B"):
+              #    self.heading = "A";
           self.state = "FollowLine";
-      elif(self.heading == "A"):
-          self.state = "Turn";
-          self.mode_pub.publish("safe");
-          if(self.command_turn(math.pi)):
-              if(self.heading == "A"):
-                  self.heading = "B";
-              elif(self.heading == "B"):
-                  self.heading = "A";
-              self.state = "FollowLine";
-          else:
-              self.state = "Error, Turn not successfull";
+      else:
+          self.state = "Error, Turn not successfull";
               
   def Stop(self):
       self.state = "Stop";
@@ -187,14 +187,14 @@ class DriveCreate2:
         self.sendStopCmd();
         
         #Since docking station is point B, after undocking, we should be heading to A
-        self.heading = "A";
+        #self.heading = "A";
 
   def updateLabel(self):
       self.currentStatus.set("State: " + self.state);
-      self.headingStatus.set("Heading: " + self.heading);
+      #self.headingStatus.set("Heading: " + self.heading);
       self.statusLabel.update_idletasks();
       self.batteryLabel.update_idletasks();
-      self.headLabel.update_idletasks();
+      #self.headLabel.update_idletasks();
       self.lineLabel.update_idletasks();
       self.oiModeLabel.update_idletasks();
       self.sonarLabel.update_idletasks();
@@ -215,14 +215,7 @@ class DriveCreate2:
         self.sonarStatus.set('Obstruction');
 
   def batteryCallback(self,msg):
-      #if(not self.docked and msg.dock):
-      #    # If I wasn't docked and now I am docked, then reset once.
-      #     time.sleep(2);    
-      #    self.resetPressed();
-
       self.docked = msg.dock;
-      if(self.docked):
-          self.heading = "B";
       self.batteryStatus.set(str("%.2f" % round(msg.level,2))+"%, Docked: " + str(self.docked));
 
   def smooth_drive(self, lin, ang):
