@@ -5,7 +5,8 @@
 
     <node name="followLine2" pkg="create_eyes" type="followLine2.py" output="screen" clear_params="true">
         <param name="loop_rate" value="200" />
-
+        <param name="show_images" value="False" />
+        <param name="use_pid" value="True" />
     </node>
     <!-- Sends Image and Navdata to the Mqtt broker -->
     <node name="controller" pkg="create_eyes" type="controller_with_gui.py" output="screen" clear_params="true">

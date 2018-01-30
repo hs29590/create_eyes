@@ -9,6 +9,7 @@ import cv2
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool
 from cv_bridge import CvBridge, CvBridgeError
@@ -22,8 +23,15 @@ class line_extractor:
   def __init__(self):
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/raspicam_node/image_raw",Image,self.callback)
+    self.control_effort_sub = rospy.Subscriber("/control_effort", Float64, self.control_callback);
 
-    self.showImages = False;
+    #print("Param is", rospy.get_param('default_param', 'default_value'));
+    show_images_from_param = rospy.get_param('~show_images', 'False')
+    rospy.loginfo('Parameter %s has value %s', rospy.resolve_name('~show_images'), show_images_from_param)
+    self.showImages = bool(show_images_from_param);
+
+    use_pid_from_param = rospy.get_param('~use_pid', 'True');
+    self.use_pid = bool(use_pid_from_param);
 
     self.image = None;
     self.SCALE_FACTOR = 4;
@@ -32,10 +40,15 @@ class line_extractor:
     self.direction = 0
     self.lineFound = False;
     self.err_pub = rospy.Publisher('line_error', Float32, queue_size=1)
+    self.pid_state_pub = rospy.Publisher('state', Float64, queue_size=1)
+    self.pid_setpoint_pub = rospy.Publisher('setpoint', Float64, queue_size=1)
     self.line_state_pub = rospy.Publisher('line_visible', Bool, queue_size = 1);
 
-    self.noLineCount = 0;
     self.twist = Twist()
+
+  def control_callback(self,msg):
+    ctrl_effort = msg.data;
+    print("Control Effort is: " , ctrl_effort);    
 
   def callback(self,msg):
 
@@ -83,6 +96,8 @@ class line_extractor:
     mask = masked;
 
     h, w, d = image.shape
+    if(self.use_pid):
+        self.pid_setpoint_pub.publish(float(w)/2.0);
     search_top = 0;
     search_bot = 2*h/3;
     search_left = w/4;
@@ -99,25 +114,31 @@ class line_extractor:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
         
+        if(self.use_pid):
+            self.pid_state_pub.publish(float(cx));
         #The proportional controller is implemented in the following four lines which
         #is reposible of linear scaling of an error to drive the control output.
-        
+        cv2.circle(image, (int(cx), int(cy)), 5, (0,0,255), -1)  
+
+	
         if self.prevCx is None:
             self.prevCx = cx;
-            
-        #smoothing cx
-        
+    
+#smoothing cx
+
         cx = self.prevCx*0.5 + cx*0.5;
-       
+
         self.prevCx = cx;
-        cv2.circle(image, (int(cx), int(cy)), 5, (0,0,255), -1)  
+
         err = cx - w/2
 
         err = self.SCALE_FACTOR * err;
 
         self.line_state_pub.publish(True);
-        self.err_pub.publish(err);
-        self.noLineCount = 0;
+        if(not self.use_pid):
+            self.err_pub.publish(err);
+	print("Err is: ", err);
+
     else: #Moment not available. Probably, line isn't there
         err = -1000.0;
         self.line_state_pub.publish(False);

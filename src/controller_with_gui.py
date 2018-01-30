@@ -111,6 +111,7 @@ class DriveCreate2:
     self.yaw = None;
     self.last_odom = Odometry();
     self.sonar_drive = True;
+    self.line_drive = True;
     self.odomRecd = False;
     self.last_drive_lin = 0.0;
     self.last_drive_ang = 0.0;
@@ -121,6 +122,7 @@ class DriveCreate2:
     self.line_visible_sub = rospy.Subscriber('line_visible', Bool, self.lineVisibleCallback)
     self.current_mode_sub = rospy.Subscriber('iRobot_0/current_mode', String, self.current_mode_callback);
     self.err_sub = rospy.Subscriber('line_error', Float32, self.errCallback)
+    self.ctrl_effort_sub = rospy.Subscriber('control_effort', Float64, self.ctrlEffortCallback);
     self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
 
@@ -204,6 +206,7 @@ class DriveCreate2:
  
   def lineVisibleCallback(self,msg):
       self.lineVisible.set("Line: " + str(msg.data));
+      self.line_drive = msg.data;
 
   def current_mode_callback(self,msg):
       self.current_oi_mode.set("OI Mode: " + msg.data);
@@ -306,6 +309,12 @@ class DriveCreate2:
         else:
             self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
             self.noLineCount = 0;
+
+  def ctrlEffortCallback(self, err):
+      if(self.state == "FollowLine" and self.sonar_drive and self.line_drive):
+          self.smooth_drive(self.LINEAR_SPEED, (float(err.data)/30));
+          
+          
 
 def main(args):
   rospy.init_node('create_eyes_controller', anonymous=True)
