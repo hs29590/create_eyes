@@ -22,6 +22,10 @@
         <param name="sampleParam" value="none" />
     </node> -->
 
+  <node name="beeper" pkg="create_eyes" type="beepNode.py" output="screen" clear_params="true">
+      <param name="beepType" value="continuous" />
+  </node>
+
   <arg name="name" default="raspicam_node" />
 
   <!-- Raspicam Node -->

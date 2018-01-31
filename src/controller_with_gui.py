@@ -10,6 +10,7 @@ from std_msgs.msg import Float32
 from std_msgs.msg import Float64
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
+from std_msgs.msg import Int32
 from irobotcreate2.msg import Battery
 import tf
 import time
@@ -31,6 +32,7 @@ class DriveCreate2:
     #Publishers
     self.cmd_vel_pub = rospy.Publisher('iRobot_0/cmd_vel', Twist, queue_size=1)
     self.mode_pub = rospy.Publisher('iRobot_0/mode', String, queue_size = 1)
+    self.tone_pub = rospy.Publisher('buzzer1/tone', Int32, queue_size = 1)
     
     #GUI Variables
     self.root = Tk()
@@ -107,6 +109,9 @@ class DriveCreate2:
     self.last_drive_ang = 0.0;
     self.noLineCount = 0;
     
+    self.STOP_TONE = 2;
+    self.FOLLOW_TONE = 5;
+
     #Subscribers
     self.bat_sub = rospy.Subscriber('iRobot_0/battery', Battery, self.batteryCallback)
     self.line_visible_sub = rospy.Subscriber('line_visible', Bool, self.lineVisibleCallback)
@@ -175,6 +180,10 @@ class DriveCreate2:
       self.sonarLabel.update_idletasks();
 
       self.root.update_idletasks();
+
+      if(self.state == "FollowLine"):
+          self.tone_pub.publish(self.FOLLOW_TONE);
+
       self.root.after(200, self.updateLabel);
  
   def lineVisibleCallback(self,msg):
@@ -260,7 +269,8 @@ class DriveCreate2:
 
   def sendStopCmd(self):
       self.smooth_drive(0.0,0.0);
-      
+      self.tone_pub.publish(self.STOP_TONE);
+
   def odomCallback(self,msg):
     if(not self.odomRecd):
         self.odomRecd = True;
@@ -277,7 +287,7 @@ class DriveCreate2:
             self.noLineCount = self.noLineCount + 1;
             if(self.noLineCount >= 20):
                 rospy.loginfo_throttle(5,"Stopping since line isn't visible");
-                self.smooth_drive(0.0,0.0);
+                self.sendStopCmd();
                 self.state = "Stop";
         else:
             self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
