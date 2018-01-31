@@ -181,7 +181,7 @@ class DriveCreate2:
 
       self.root.update_idletasks();
 
-      if(self.state == "FollowLine"):
+      if(self.state == "FollowLine" and self.line_drive and self.sonar_drive):
           self.tone_pub.publish(self.FOLLOW_TONE);
 
       self.root.after(200, self.updateLabel);
@@ -192,12 +192,6 @@ class DriveCreate2:
 
   def current_mode_callback(self,msg):
       self.current_oi_mode.set("OI Mode: " + msg.data);
-
-  def sonarCallback(self,msg):
-      if(msg.data):
-        self.sonarStatus.set('No Obstruction');
-      else:
-        self.sonarStatus.set('Obstruction');
 
   def batteryCallback(self,msg):
       self.docked = msg.dock;
@@ -214,6 +208,10 @@ class DriveCreate2:
 
   def sonarCallback(self, msg):
       self.sonar_drive = msg.data;
+      if(msg.data):
+        self.sonarStatus.set('No Obstruction');
+      else:
+        self.sonarStatus.set('Obstruction');
 
   def command_turn(self, angleToTurn):
       if(not self.odomRecd):
@@ -298,7 +296,6 @@ class DriveCreate2:
           self.smooth_drive(self.LINEAR_SPEED, (float(err.data)/30));
           
           
-
 def main(args):
   rospy.init_node('create_eyes_controller', anonymous=True)
   ic = DriveCreate2()
