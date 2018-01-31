@@ -95,7 +95,7 @@ class Buzzer(object):
 
 if __name__ == "__main__":
   rospy.init_node('beep_node_create', anonymous=True)
-  a = input("Enter Tune number 1-5:")
+#  a = input("Enter Tune number 1-5:")
   buzzer = Buzzer()
   rospy.spin();
 #  buzzer.play(int(a))
