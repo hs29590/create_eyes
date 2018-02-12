@@ -46,7 +46,7 @@ class Buzzer(object):
   GPIO.setup(self.buzzer_pin, GPIO.OUT)
   x=0
 
-  print("Playing tune ",tune)
+ # print("Playing tune ",tune)
   if(tune==1):
     pitches=[262,294,330,349,392,440,494,523, 587, 659,698,784,880,988,1047]
     duration=0.1
