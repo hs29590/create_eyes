@@ -68,7 +68,7 @@ class line_extractor:
     #closing = cv2.morphologyEx(th1, cv2.MORPH_CLOSE, kernel)
     #closing = cv2.morphologyEx(closing, cv2.MORPH_CLOSE, kernel)
     
-    lower_sat = numpy.array([220])
+    lower_sat = numpy.array([200])
     upper_sat = numpy.array([255])
 
     sat_mask = cv2.inRange(sat_img, lower_sat, upper_sat);
