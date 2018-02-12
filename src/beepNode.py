@@ -17,7 +17,7 @@ class Buzzer(object):
   self.buzzer_pin = 17 #set to GPIO pin 5
   GPIO.setup(self.buzzer_pin, GPIO.IN)
   GPIO.setup(self.buzzer_pin, GPIO.OUT)
-  self.tone_sub = rospy.Subscriber('buzzer1/tone', Int32, self.toneCallback)
+  self.tone_sub = rospy.Subscriber('buzzer1/tone', Int32, self.toneCallback, queue_size=1)
   print("buzzer ready")
 
  def __del__(self):
