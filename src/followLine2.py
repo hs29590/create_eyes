@@ -62,7 +62,7 @@ class line_extractor:
     sat_mask = cv2.inRange(sat_img, self.lower_sat, self.upper_sat);
 
     yellow_mask = cv2.inRange(image, self.lower_yellow, self.upper_yellow);
-
+    
     if(self.showImages):
         cv2.imshow('sat',sat_mask);
         cv2.waitKey(3);

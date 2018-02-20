@@ -82,7 +82,7 @@ class SonarClass:
     def triggerAndPublish(self):
         self.safeToDrive = True;
         self.pi.gpio_trigger(self.TRIGGER, 10);
-        time.sleep(0.1);
+        time.sleep(0.02);
         if(self.echo1Distance < self.USSensorStoppingRange or self.echo2Distance < self.USSensorStoppingRange or self.echo3Distance < self.USSensorStoppingRange):
             self.state_pub.publish(False);
         else:

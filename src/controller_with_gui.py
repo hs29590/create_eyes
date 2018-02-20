@@ -301,7 +301,8 @@ class DriveCreate2:
     self.yaw = euler[2]
 
   def errCallback(self,err):
-    if(self.state == "FollowLine" and self.sonar_drive):
+        
+    if(self.state == "FollowLine"):
         if(err.data == -1000.0):
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
@@ -310,6 +311,10 @@ class DriveCreate2:
                 rospy.loginfo_throttle(5,"Stopping since line isn't visible");
                 self.sendStopCmd();
                 self.state = "Stop";
+
+        elif not self.sonar_drive:
+            self.sendStopCmd();
+
         else:
             self.smooth_drive(self.LINEAR_SPEED, (-float(err.data)/50.0));
             self.noLineCount = 0;
