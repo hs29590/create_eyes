@@ -32,7 +32,7 @@ class SonarClass:
        else:
           self.high_tick2 = tick
 
-    def cbfunc3(self,gpio, level, tick):
+    '''    def cbfunc3(self,gpio, level, tick):
        if level == 0: # echo line changed from high to low.
           if self.high_tick3 is not None:
              echo = pigpio.tickDiff(self.high_tick3, tick)
@@ -41,7 +41,7 @@ class SonarClass:
              self.echo3Distance = self.echo3Distance*0.5 + 0.5*cms;
        else:
           self.high_tick3 = tick
-          
+   '''       
     def __init__ (self):
 
         self.TRIGGER=19
@@ -51,13 +51,13 @@ class SonarClass:
    
         self.echo1Distance = 1000;
         self.echo2Distance = 1000;
-        self.echo3Distance = 1000;
+#       self.echo3Distance = 1000;
 
         self.USSensorStoppingRange = 20.0;
 
         self.high_tick1 = None # global to hold high tick.
         self.high_tick2 = None # global to hold high tick.
-        self.high_tick3 = None # global to hold high tick.
+#       self.high_tick3 = None # global to hold high tick.
     
         self.state_pub = rospy.Publisher('sonar_drive', Bool, queue_size=1)
         self.safeToDrive = True;
@@ -71,19 +71,21 @@ class SonarClass:
 
         self.cb1 = self.pi.callback(self.ECHO1, pigpio.EITHER_EDGE, self.cbfunc1)
         self.cb2 = self.pi.callback(self.ECHO2, pigpio.EITHER_EDGE, self.cbfunc2)
-        self.cb3 = self.pi.callback(self.ECHO3, pigpio.EITHER_EDGE, self.cbfunc3)
+#self.cb3 = self.pi.callback(self.ECHO3, pigpio.EITHER_EDGE, self.cbfunc3)
    
     def __del__(self):
         self.cb1.cancel() # Cancel callback.
         self.cb2.cancel() # Cancel callback.
-        self.cb3.cancel() # Cancel callback.
+#       self.cb3.cancel() # Cancel callback.
         self.pi.stop() # Close connection to Pi 
 
     def triggerAndPublish(self):
         self.safeToDrive = True;
         self.pi.gpio_trigger(self.TRIGGER, 10);
         time.sleep(0.02);
-        if(self.echo1Distance < self.USSensorStoppingRange or self.echo2Distance < self.USSensorStoppingRange or self.echo3Distance < self.USSensorStoppingRange):
+        
+#if(self.echo1Distance < self.USSensorStoppingRange or self.echo2Distance < self.USSensorStoppingRange or self.echo3Distance < self.USSensorStoppingRange):
+        if(self.echo1Distance < self.USSensorStoppingRange or self.echo2Distance < self.USSensorStoppingRange):
             self.state_pub.publish(False);
         else:
             self.state_pub.publish(True);
