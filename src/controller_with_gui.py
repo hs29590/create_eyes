@@ -25,6 +25,9 @@ class DriveCreate2:
 
   def __init__(self):
     
+    self.timeOfLastActivity = rospy.Time.now();
+    self.isAsleep = False;
+
     self.LINEAR_SPEED = 0.8;
    
     self.state = "Stop"
@@ -120,8 +123,11 @@ class DriveCreate2:
     self.ctrl_effort_sub = rospy.Subscriber('control_effort', Float64, self.ctrlEffortCallback);
     self.odom_sub = rospy.Subscriber('iRobot_0/odom', Odometry, self.odomCallback)
     self.sonar_sub = rospy.Subscriber('sonar_drive', Bool, self.sonarCallback);
+    
+    self.timeOfLastActivity = rospy.Time.now();
 
   def resetPressed(self):
+      self.timeOfLastActivity = rospy.Time.now();
       tkMessageBox.showerror("Error", "Trying to Reset The Robot, Please wait 10 sec..")
       rospy.loginfo("Publishing reset, waiting 7 sec..");
       self.mode_pub.publish("reset");
@@ -130,6 +136,11 @@ class DriveCreate2:
       rospy.loginfo("Published Start..");
       
   def goAhead(self):
+      if(self.isAsleep):
+          call(["rosservice", "call", "/raspicam_node/start_capture"]);
+          self.isAsleep = False;
+
+      self.timeOfLastActivity = rospy.Time.now();
       if self.docked:
           tkMessageBox.showerror("Error", "Robot is Docked, Press Un-Dock First")
       else:
@@ -137,6 +148,11 @@ class DriveCreate2:
           self.state = "FollowLine";
           
   def turnAndGo(self):
+      if(self.isAsleep):
+          call(["rosservice", "call", "/raspicam_node/start_capture"]);
+          self.isAsleep = False;
+
+      self.timeOfLastActivity = rospy.Time.now();
       if self.docked:
           tkMessageBox.showerror("Error", "Robot is Docked, Press Un-Dock First")
       else:
@@ -148,11 +164,13 @@ class DriveCreate2:
               self.state = "Error, Turn not successfull";
               
   def Stop(self):
+      self.timeOfLastActivity = rospy.Time.now();
       self.state = "Stop";
       self.mode_pub.publish("safe");
       self.sendStopCmd();
 
   def dock(self):
+      self.timeOfLastActivity = rospy.Time.now();
       if self.docked:
           tkMessageBox.showerror("Error", "Robot is Already Docked")
       else:
@@ -160,6 +178,7 @@ class DriveCreate2:
           self.mode_pub.publish("dock");
 
   def undock(self):
+      self.timeOfLastActivity = rospy.Time.now();
       if(not self.docked):
           tkMessageBox.showerror("Error", "Not Docked")
       else:
@@ -183,6 +202,10 @@ class DriveCreate2:
 
       if(self.state == "FollowLine" and self.line_drive and self.sonar_drive):
           self.tone_pub.publish(self.FOLLOW_TONE);
+          self.isAsleep = True;
+
+      if(self.state == "Stop" and rospy.Time.now() - self.timeOfLastActivity > 10):
+          call(["rosservice", "call", "/raspicam_node/stop_capture"]);
 
       self.root.after(200, self.updateLabel);
  
