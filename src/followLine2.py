@@ -23,7 +23,7 @@ class line_extractor:
   def __init__(self):
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/raspicam_node/image_raw",Image,self.callback)
-    self.control_effort_sub = rospy.Subscriber("/control_effort", Float64, self.control_callback);
+#    self.control_effort_sub = rospy.Subscriber("/control_effort", Float64, self.control_callback);
 
     #print("Param is", rospy.get_param('default_param', 'default_value'));
     show_images_from_param = rospy.get_param('~show_images', 'False')
@@ -46,9 +46,9 @@ class line_extractor:
 
     self.twist = Twist()
 
-  def control_callback(self,msg):
-    ctrl_effort = msg.data;
-    print("Control Effort is: " , ctrl_effort);    
+#def control_callback(self,msg):
+#    ctrl_effort = msg.data;
+#    print("Control Effort is: " , ctrl_effort);    
 
   def callback(self,msg):
 
