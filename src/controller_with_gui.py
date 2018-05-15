@@ -139,6 +139,7 @@ class DriveCreate2:
       if(self.isAsleep):
           call(["rosservice", "call", "/raspicam_node/start_capture"]);
           self.isAsleep = False;
+          rospy.loginfo("Coming out of sleep");
 
       self.timeOfLastActivity = rospy.Time.now();
       if self.docked:
@@ -151,6 +152,7 @@ class DriveCreate2:
       if(self.isAsleep):
           call(["rosservice", "call", "/raspicam_node/start_capture"]);
           self.isAsleep = False;
+          rospy.loginfo("Coming out of sleep");
 
       self.timeOfLastActivity = rospy.Time.now();
       if self.docked:
@@ -202,10 +204,14 @@ class DriveCreate2:
 
       if(self.state == "FollowLine" and self.line_drive and self.sonar_drive):
           self.tone_pub.publish(self.FOLLOW_TONE);
-          self.isAsleep = True;
 
-      if(self.state == "Stop" and rospy.Time.now() - self.timeOfLastActivity > 10):
+      if(not self.isAsleep and self.state == "Stop" and rospy.Time.now() - self.timeOfLastActivity > rospy.Duration(60)):
           call(["rosservice", "call", "/raspicam_node/stop_capture"]);
+          self.isAsleep = True;
+          rospy.loginfo("Going to sleep");
+#self.lastPingWhileSleeping = rospy.Time.now();
+
+
 
       self.root.after(200, self.updateLabel);
  
@@ -307,7 +313,7 @@ class DriveCreate2:
             #I will come here when I'm asked to follow line, but I can't see the line. User is expected to press go button again.
             #this is also done to stop the robot from following random things if it doesn't see the line
             self.noLineCount = self.noLineCount + 1;
-            if(self.noLineCount >= 20):
+            if(self.noLineCount >= 200):
                 rospy.loginfo_throttle(5,"Stopping since line isn't visible");
                 self.sendStopCmd();
                 self.state = "Stop";
